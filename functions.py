@@ -16,6 +16,9 @@ def obtainTable(fileName):
 
     return db
 
+def displayTable(db):
+    st.dataframe(db, hide_index=True, use_container_width=True)
+
 def returnMaxMinID(db):
     max_id = db['ID'].max()
     min_id = db['ID'].min()
@@ -45,21 +48,6 @@ def deleteRow(fileName, row):
 
     st.rerun()
 
-def createForm(type, title, paramDict):
-    d ={}
-    with st.form(key='item-form-{}'.format(type)):
-        st.write(title)
-        for key in paramDict:
-            print('key', key)
-            print('paramdict', paramDict)
-            print('paramDict[key[1]] ', paramDict[key][1])
-            if paramDict[key][1] == 'text':
-                d["".format(key)] = st.text_input(key[0])
-            elif paramDict[key][1] == 'number':
-                d["".format(key)] = st.number_input(key[0])
-
-    return d, st.form_submit_button('Guardar registro')
-
 def deleteForm(min_id, max_id, fileName):
 
     with st.form(key='item-form-delete'):
@@ -67,15 +55,15 @@ def deleteForm(min_id, max_id, fileName):
         deleteNumber = st.number_input('ID', min_value=min_id, max_value=max_id)
         deleteButton = st.form_submit_button('Eliminar registro')
 
-        css="""
-        <style>
-            [data-testid="stForm"]:nth-child(1) {
-                background-color: red;
-            }
-        </style>
-        """
+        # css="""
+        # <style>
+        #     [data-testid="stForm"]:nth-child(1) {
+        #         background-color: red;
+        #     }
+        # </style>
+        # """
 
-        st.write(css, unsafe_allow_html=True)
+        # st.write(css, unsafe_allow_html=True)
 
     if deleteButton:
         deleteRow(fileName, deleteNumber)
