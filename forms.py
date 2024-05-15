@@ -16,13 +16,14 @@ import functions as f
 
 
 class ItemForm():
-    def __init__(self, formType, title, buttonName):
+    def __init__(self, formType, title, buttonName, type='search'):
         with st.form(key='item-form-{}'.format(formType)):
             self.title = st.write(title)
             self.item = st.text_input('Articulo')
             self.desc = st.text_input('Descripción')
-            self.cost = st.number_input('Coste Sugerido')
-            self.price = st.number_input('Precio Sugerido')
+            if type == 'submit':
+                self.cost = st.number_input('Coste Sugerido')
+                self.price = st.number_input('Precio Sugerido')
 
             self.Button = st.form_submit_button(buttonName)
         # # inheriting the properties of parent class

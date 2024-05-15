@@ -41,6 +41,18 @@ def submitDatasource(new_row, fileName, uniqueColumn=None):
         df_combined.to_excel(fileName, index=False)
         st.rerun()
 
+def searchFunction(db, instance, *args):
+    formSearchArgsList = []
+    for i in instance.__dict__.keys():
+        if i not in ('title', 'Button'):
+            formSearchArgsList.append(i)
+
+    for count, j in enumerate(formSearchArgsList):
+        if getattr(instance, j) not in (' '): 
+            db = db[db[args[count]].str.contains(getattr(instance, j), na=False)]            
+
+    return db
+
 def deleteRow(fileName, row):
     db = pd.read_excel(fileName)
     db = db[db.ID != row]
@@ -52,8 +64,13 @@ def deleteForm(min_id, max_id, fileName):
 
     with st.form(key='item-form-delete'):
         st.write("Formulario para Borrar")
-        deleteNumber = st.number_input('ID', min_value=min_id, max_value=max_id)
-        deleteButton = st.form_submit_button('Eliminar registro')
+        #column formats
+        col1, col2 = st.columns([4,1])
+        with col1:
+            deleteNumber = st.number_input('ID', min_value=min_id, max_value=max_id)
+
+        with col2:
+            deleteButton = st.form_submit_button('Eliminar registro')
 
         # css="""
         # <style>

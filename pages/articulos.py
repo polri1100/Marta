@@ -12,15 +12,12 @@ fileName = f.obtainPath('articulos')
 db = f.obtainTable('articulos')
 max_id, min_id = f.returnMaxMinID(db)
 
-#table display
-st.dataframe(db, hide_index=True, use_container_width=True)
-
 #column formats
 col1, col2 = st.columns(2)
 
 #form submit display
 with col1:
-    formSubmit = forms.ItemForm('submit', 'Formulario para Insertar','Guardar registro')
+    formSubmit = forms.ItemForm('submit', 'Formulario para Insertar','Guardar registro', type='submit')
 
 if formSubmit.Button:
 
@@ -36,6 +33,13 @@ if formSubmit.Button:
 # form search display
 with col2:
     formSearch = forms.ItemForm('search','Formulario para Buscar','Buscar registro')
+
+# form search filter
+if formSearch.Button:
+    db = f.searchFunction(db, formSearch, "Articulo", "Descripción")
+
+#table display
+f.displayTable(db)
 
 # delete form
 f.deleteForm(min_id, max_id, fileName)
