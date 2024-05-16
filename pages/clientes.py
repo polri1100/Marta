@@ -23,7 +23,6 @@ col1, col2 = st.columns(2)
 # form submit display
 with col1:
     formSubmit = forms.CustomerForm('submit', 'Formulario para Insertar','Guardar registro')
-    print(formSubmit.phone)
 
 #form submit add
 if formSubmit.Button:

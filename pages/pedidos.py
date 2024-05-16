@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd 
 import functions as f
-from datetime import datetime
+import forms
 
 #Define Variables
 # if 'payedToggle' not in st.session_state:
@@ -34,66 +34,49 @@ db_joined.rename(columns={'ID_x': 'ID'}, inplace=True)
 
 db_joined = db_joined.sort_values(by=['ID'], ascending=False)
 
-#table display
-st.dataframe(db_joined, hide_index=True, use_container_width=True)
-
 #table calculations
 list_items = db_articulos['Articulo'].unique()
 list_customers = db_clientes['Nombre'].unique()
 max_id, min_id = f.returnMaxMinID(db_pedidos)
 
+#column formats
+col1, col2 = st.columns(2)
 
 # form submit display
-with st.form(key='item-form-submit'):
-    st.write("Formulario para Insertar")
+with col1:
+    formSubmit = forms.OrderForm('submit', 'Formulario para Insertar','Guardar registro', list_items, list_customers, db_articulos)
 
-    item = st.selectbox('Articulo', (list_items))
-    customer = st.selectbox('Cliente', (list_customers))
-    deliveryDate = st.date_input('Fecha Entrega', format="DD/MM/YYYY")
-    quantity = st.number_input('Cantidad', step=1)
-    suggestedButton = st.form_submit_button('Ver coste y precio sugeridos')
-
-    if suggestedButton:
-
-        cost = st.number_input('Coste', db_articulos.loc[db_articulos['Articulo'] == item, 'Coste Sugerido'].iat[0])
-        price = st.number_input('Precio', db_articulos.loc[db_articulos['Articulo'] == item, 'Precio Sugerido'].iat[0])
-
-    else:
-        cost = st.number_input('Coste', value = 0)
-        price = st.number_input('Precio', value = 0)
-
-    payed = st.selectbox('Pagado?', ('Pagado', 'No pagado'))
-    
-    if payed == 'Pagado':
-        payed = True
-    else:
-        payed = False
-    
-    pickUpDate = st.date_input('Fecha Recogida', None, format="DD/MM/YYYY")
-    submitButton = st.form_submit_button('Guardar registro')
-
-
-if submitButton:
+if formSubmit.Button:
 
     #ids detection:
-    customer_id = db_clientes.loc[db_clientes['Nombre'] == customer, 'ID'][0]
-    item_id = db_articulos.loc[db_articulos['Articulo'] == item, 'ID'][0]
+    customer_id = db_clientes.loc[db_clientes['Nombre'] == formSubmit.customer, 'ID'].values[0]
+    item_id = db_articulos.loc[db_articulos['Articulo'] == formSubmit.item, 'ID'].values[0]
 
     # new datasource
     new_row = {'ID': [max_id+1],
                 'Cliente_id': [customer_id], 
                 'Articulo_id': [item_id], 
-                'Fecha Entrega': [deliveryDate], 
-                'Cantidad': [quantity],
-                'Coste': [cost],
-                'Precio': [price],
-                'Pagado': [payed],
-                'Fecha Recogida': [pickUpDate]}
+                'Fecha Entrega': [formSubmit.deliveryDate], 
+                'Cantidad': [formSubmit.quantity],
+                'Coste': [formSubmit.cost],
+                'Precio': [formSubmit.price],
+                'Pagado': [formSubmit.payed],
+                'Fecha Recogida': [formSubmit.pickUpDate]}
     
     f.submitDatasource(new_row, fileName)
 
-    db_pedidos = f.obtainTable('pedidos')
+    # db_pedidos = f.obtainTable('pedidos')
 
+# form search display
+with col2:
+    formSearch = forms.OrderForm('search','Formulario para Buscar','Buscar registro')
+
+# form search filter
+if formSearch.Button:
+    db_joined = f.searchFunction(db_joined, formSearch, "Fecha Entrega", "Nombre", "Articulo", "Pagado", "Fecha Recogida")
+
+#table display
+f.displayTable(db_joined)
 
 # delete form
 f.deleteForm(min_id, max_id, fileName)

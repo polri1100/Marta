@@ -1,0 +1,26 @@
+
+
+Success message when insterting is correct
+Restriction to variables input (ex. telephon number 9 digits)
+set page.config
+Add fields (customer description, order description)
+Sharepoints instead of excel
+download option
+delete option confirmation
+forbid deleete customer or item if order is in place
+learn how to share
+
+--Marta test
+
+GPT 4o
+Apply Color to form
+
+
+-- Final
+upload data from Odoo
+
+
+--orden de formulario
+Fecha
+Cliente
+Articulo

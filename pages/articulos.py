@@ -17,7 +17,7 @@ col1, col2 = st.columns(2)
 
 #form submit display
 with col1:
-    formSubmit = forms.ItemForm('submit', 'Formulario para Insertar','Guardar registro', type='submit')
+    formSubmit = forms.ItemForm('submit', 'Formulario para Insertar','Guardar registro')
 
 if formSubmit.Button:
 
