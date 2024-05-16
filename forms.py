@@ -24,17 +24,33 @@ class ItemForm():
             if formType == 'submit':
                 self.cost = st.number_input('Coste Sugerido')
                 self.price = st.number_input('Precio Sugerido')
-
-            self.Button = st.form_submit_button(buttonName)
+                self.Button = st.form_submit_button(buttonName)
+            else:
+                col1search, col2search = st.columns(2)
+                with col1search:
+                    self.Button = st.form_submit_button(buttonName)
+                with col2search:
+                    self.ButtonReset = st.form_submit_button('Borrar busqueda')
+               
+            
 
 class CustomerForm():
     def __init__(self, formType, title, buttonName):
         with st.form(key='item-form-{}'.format(formType)):
             self.title = st.write(title)
             self.name = st.text_input('Nombre')
+            self.desc = st.text_input('Descripción')
             self.phone = st.text_input('Telefono')
 
-            self.Button = st.form_submit_button(buttonName)
+            if formType == 'submit':
+                self.Button = st.form_submit_button(buttonName)
+            else:
+                col1search, col2search = st.columns(2)
+                with col1search:
+                    self.Button = st.form_submit_button(buttonName)
+                with col2search:
+                    self.ButtonReset = st.form_submit_button('Borrar busqueda')
+
 
 
 class OrderForm():
@@ -43,34 +59,43 @@ class OrderForm():
             st.write(title)
 
             if formType == 'submit':
-                self.deliveryDate = st.date_input('Fecha Entrega', format="DD/MM/YYYY")
-                self.customer = st.selectbox('Cliente', (list_customers))
-                self.item = st.selectbox('Articulo', (list_items))
-
-                self.quantity = st.number_input('Cantidad', step=1)
-                self.suggestedButton = st.form_submit_button('Ver coste y precio sugeridos')
-
-                if self.suggestedButton:
-
-                    self.cost = st.number_input('Coste', db_articulos.loc[db_articulos['Articulo'] == self.item, 'Coste Sugerido'].iat[0])
-                    self.price = st.number_input('Precio', db_articulos.loc[db_articulos['Articulo'] == self.item, 'Precio Sugerido'].iat[0])
-
-                else:
-                    self.cost = st.number_input('Coste', value = 0)
-                    self.price = st.number_input('Precio', value = 0)
-
-                self.payed = st.selectbox('Pagado?', ('Pagado', 'No pagado'))
+                col1submit, col2submit = st.columns(2)
+                with col1submit:
+                    self.deliveryDate = st.date_input('Fecha Entrega', format="DD/MM/YYYY")
+                    self.customer = st.selectbox('Cliente', (list_customers))
+                    self.item = st.selectbox('Articulo', (list_items))
+                    self.desc = st.text_input('Descripción')
+                    self.quantity = st.number_input('Cantidad', step=1)
+                    
+                    self.Button = st.form_submit_button(buttonName)
                 
-                if self.payed == 'Pagado':
-                    self.payed = True
-                else:
-                    self.payed = False
+                with col2submit:
+                    self.suggestedButton = st.form_submit_button('Ver precios sugeridos')
+
+                    if self.suggestedButton:
+
+                        self.cost = st.number_input('Coste', min_value=0, max_value=None, value=db_articulos.loc[db_articulos['Articulo'] == self.item, 'Coste Sugerido'].iat[0])
+                        self.price = st.number_input('Precio', min_value=0, max_value=None, value=db_articulos.loc[db_articulos['Articulo'] == self.item, 'Precio Sugerido'].iat[0])
+
+                    else:
+                        self.cost = st.number_input('Coste', value = 0)
+                        self.price = st.number_input('Precio', value = 0)                   
+                    self.pickUpDate = st.date_input('Fecha Recogida', None, format="DD/MM/YYYY")
+                    self.payed = st.selectbox('Pagado?', ('Pagado', 'No pagado'))
+                    
+                    if self.payed == 'Pagado':
+                        self.payed = True
+                    else:
+                        self.payed = False
+                    
+
 
             else:
                 self.deliveryDate = st.date_input('Fecha Entrega', value=None, format="DD/MM/YYYY")
                 self.customer = st.text_input('Cliente')
                 self.item = st.text_input('Articulo')
-
+                self.desc = st.text_input('Descripción')
+                self.pickUpDate = st.date_input('Fecha Recogida', None, format="DD/MM/YYYY")        
                 self.payed = st.selectbox('Pagado?', ('','Pagado', 'No pagado'))
                 
                 if self.payed == 'Pagado':
@@ -81,10 +106,15 @@ class OrderForm():
                     self.payed = ' '
                     #de esta manera no entra en la searchFunction
 
+                col1search, col2search = st.columns(2)
+                with col1search:
+                    self.Button = st.form_submit_button(buttonName)
+                with col2search:
+                    self.ButtonReset = st.form_submit_button('Borrar busqueda')
+
 
             
-            self.pickUpDate = st.date_input('Fecha Recogida', None, format="DD/MM/YYYY")
-            self.Button = st.form_submit_button(buttonName)
+
 
 
 

@@ -29,7 +29,8 @@ if formSubmit.Button:
     
     # new datasource
     new_row = {'ID': [max_id+1],
-                'Nombre': [formSubmit.name], 
+                'Nombre': [formSubmit.name],
+                'Descripcion': [formSubmit.desc], 
                 'Telefono': [formSubmit.phone]}
     
     f.submitDatasource(new_row, fileName, 'Nombre')
@@ -40,7 +41,7 @@ with col2:
 
 # form search filter
 if formSearch.Button:
-    db = f.searchFunction(db, formSearch, "Nombre", "Telefono")
+    db = f.searchFunction(db, formSearch, "Nombre", "Descripcion", "Telefono")
 
 #table display
 f.displayTable(db)

@@ -36,20 +36,23 @@ def submitDatasource(new_row, fileName, uniqueColumn=None):
         checkDuplicated = False
     
     if checkDuplicated:
-        st.warning('El nombre ya existe. No puede haber dos {}s con el mismo nombre'.format(uniqueColumn), icon="⚠️")
+        st.warning('El nombre ya existe. No puede haber dos {}s iguales'.format(uniqueColumn), icon="⚠️")
     else:
         df_combined = pd.concat([df_existing, df_new])
         df_combined.to_excel(fileName, index=False)
-        st.rerun()
+        st.success('    Añadido :)', icon="✅")
 
 def searchFunction(db, instance, *args):
     formSearchArgsList = []
     for i in instance.__dict__.keys():
-        if i not in ('title', 'Button'):
+        if i not in ('title', 'Button', 'ButtonReset'):
             formSearchArgsList.append(i)
 
     for count, j in enumerate(formSearchArgsList):
         instAtr =  getattr(instance, j)
+        print(instAtr)
+        print(formSearchArgsList)
+        print(args[count])
         if instAtr is None:
             pass
         elif type(instAtr) is datetime.date:
