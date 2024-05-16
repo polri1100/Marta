@@ -17,7 +17,8 @@ def obtainTable(fileName):
 
     return db
 
-def displayTable(db):
+def displayTable(db, sortField='ID'):
+    db = db.sort_values(by=[sortField], ascending=False)
     st.dataframe(db, hide_index=True, use_container_width=True)
 
 def returnMaxMinID(db):
@@ -26,21 +27,52 @@ def returnMaxMinID(db):
 
     return max_id, min_id
 
-def submitDatasource(new_row, fileName, uniqueColumn=None):
+def ordersJoin(db_pedidos, db_clientes, db_articulos):
+    
+    db_joined = db_pedidos.merge(db_clientes, left_on='Cliente_id', right_on='ID', how='left')
+    db_joined = db_joined.merge(db_articulos, left_on='Articulo_id', right_on='ID', how='left')
+    db_joined = db_joined[['ID_x', 'Fecha Entrega', 
+                        'Nombre',
+                        'Articulo', 'Descripcion_x',
+                        'Cantidad', 'Coste', 'Precio',
+                        'Pagado', 'Fecha Recogida']]
+
+    db_joined["Pagado"] = db_joined["Pagado"].astype('bool')
+    db_joined["Fecha Entrega"] = db_joined["Fecha Entrega"].dt.strftime('%d/%m/%Y')
+    db_joined["Fecha Recogida"] = db_joined["Fecha Recogida"].dt.strftime('%d/%m/%Y')
+
+    db_joined.rename(columns={'ID_x': 'ID'}, inplace=True)
+    db_joined.rename(columns={'Descripcion_x': 'Descripcion'}, inplace=True)
+
+
+    return db_joined
+
+
+def submitDatasource(new_row, fileName, uniqueColumn=None, restrictedValue=''):
     df_new = pd.DataFrame(new_row)
     df_existing = pd.read_excel(fileName)
 
     try:
-        checkDuplicated = new_row[uniqueColumn] in df_existing[uniqueColumn].values
+        repeatedValue = new_row[uniqueColumn] in df_existing[uniqueColumn].values
     except Exception:
-        checkDuplicated = False
-    
-    if checkDuplicated:
-        st.warning('El nombre ya existe. No puede haber dos {}s iguales'.format(uniqueColumn), icon="⚠️")
+        repeatedValue = False
+
+    if len(restrictedValue) == 9 or restrictedValue == '':
+        acceptedValue = True
+    else:
+        acceptedValue = False
+
+    if repeatedValue:
+        st.warning('El nombre ya existe. No puede haber dos {}s iguales'.format(uniqueColumn.lower()), icon="⚠️")
+        return df_existing
+    elif acceptedValue==False:
+        st.warning('El telefono debe contener nueve digitos', icon="⚠️")
+        return df_existing
     else:
         df_combined = pd.concat([df_existing, df_new])
         df_combined.to_excel(fileName, index=False)
         st.success('    Añadido :)', icon="✅")
+    return df_combined
 
 def searchFunction(db, instance, *args):
     formSearchArgsList = []
@@ -50,9 +82,6 @@ def searchFunction(db, instance, *args):
 
     for count, j in enumerate(formSearchArgsList):
         instAtr =  getattr(instance, j)
-        print(instAtr)
-        print(formSearchArgsList)
-        print(args[count])
         if instAtr is None:
             pass
         elif type(instAtr) is datetime.date:

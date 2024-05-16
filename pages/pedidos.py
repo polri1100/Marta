@@ -18,22 +18,7 @@ db_articulos = f.obtainTable('articulos')
 db_clientes = f.obtainTable('clientes')
 
 #Join Databases
-db_joined = db_pedidos.merge(db_clientes, left_on='Cliente_id', right_on='ID', how='left')
-db_joined = db_joined.merge(db_articulos, left_on='Articulo_id', right_on='ID', how='left')
-db_joined = db_joined[['ID_x', 'Fecha Entrega', 
-                       'Nombre',
-                       'Articulo', 'Descripcion_x',
-                       'Cantidad', 'Coste', 'Precio',
-                       'Pagado', 'Fecha Recogida']]
-
-db_joined["Pagado"] = db_joined["Pagado"].astype('bool')
-db_joined["Fecha Entrega"] = db_joined["Fecha Entrega"].dt.strftime('%d/%m/%Y')
-db_joined["Fecha Recogida"] = db_joined["Fecha Recogida"].dt.strftime('%d/%m/%Y')
-
-db_joined.rename(columns={'ID_x': 'ID'}, inplace=True)
-db_joined.rename(columns={'Descripcion_x': 'Descripcion'}, inplace=True)
-
-db_joined = db_joined.sort_values(by=['ID'], ascending=False)
+db_joined = f.ordersJoin(db_pedidos, db_clientes, db_articulos)
 
 #table calculations
 list_items = db_articulos['Articulo'].unique()
@@ -65,9 +50,12 @@ if formSubmit.Button:
                 'Pagado': [formSubmit.payed],
                 'Fecha Recogida': [formSubmit.pickUpDate]}
     
-    f.submitDatasource(new_row, fileName)
+    db_joined = f.submitDatasource(new_row=new_row, fileName=fileName)
+   
+    #per a tornar a tenir la taula amb els unics camps que volem
+    db_pedidos = f.obtainTable('pedidos')
+    db_joined = f.ordersJoin(db_pedidos, db_clientes, db_articulos)
 
-    # db_pedidos = f.obtainTable('pedidos')
 
 # form search display
 with col2:
@@ -78,7 +66,8 @@ if formSearch.Button:
     db_joined = f.searchFunction(db_joined, formSearch, "Fecha Entrega", "Nombre", "Articulo", "Descripcion", "Fecha Recogida", "Pagado")
 
 #table display
-f.displayTable(db_joined)
+print(db_joined)
+f.displayTable(db_joined, 'ID')
 
 # delete form
 f.deleteForm(min_id, max_id, fileName)

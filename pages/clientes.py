@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd 
 import functions as f
 import forms
-import inspect
 
 #title
 st.markdown("# Clientes 👨‍🦰👩‍🦰")
@@ -14,8 +13,8 @@ db = pd.read_excel(fileName)
 max_id, min_id = f.returnMaxMinID(db)
 
 #table types 
-phone_nos = db.Telefono.astype(str).replace('^(\d{3})(\d{2})(\d{2})(\d{2})$', r'\1 \2 \3 \4')
-db.Telefono = phone_nos.where(db.Telefono.astype(str).str.contains('^\d{9}$'))
+# phone_nos = db.Telefono.astype(str).replace('^(\d{3})(\d{2})(\d{2})(\d{2})$', r'\1 \2 \3 \4')
+# db.Telefono = phone_nos.where(db.Telefono.astype(str).str.contains('^\d{9}$'))
 
 #column formats
 col1, col2 = st.columns(2)
@@ -33,7 +32,7 @@ if formSubmit.Button:
                 'Descripcion': [formSubmit.desc], 
                 'Telefono': [formSubmit.phone]}
     
-    f.submitDatasource(new_row, fileName, 'Nombre')
+    db = f.submitDatasource(new_row, fileName, uniqueColumn='Nombre', restrictedValue=formSubmit.phone)
 
 # form search display
 with col2:
@@ -44,7 +43,7 @@ if formSearch.Button:
     db = f.searchFunction(db, formSearch, "Nombre", "Descripcion", "Telefono")
 
 #table display
-f.displayTable(db)
+f.displayTable(db, 'ID')
 
 # delete form
 f.deleteForm(min_id, max_id, fileName)

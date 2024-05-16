@@ -28,7 +28,7 @@ if formSubmit.Button:
                 'Coste Sugerido': [formSubmit.cost], 
                 'Precio Sugerido': [formSubmit.price] }
     
-    f.submitDatasource(new_row, fileName, uniqueColumn='Articulo')
+    db = f.submitDatasource(new_row, fileName, uniqueColumn='Articulo')
 
 # form search display
 with col2:
@@ -39,7 +39,7 @@ if formSearch.Button:
     db = f.searchFunction(db, formSearch, "Articulo", "Descripción")
 
 #table display
-f.displayTable(db)
+f.displayTable(db, 'ID')
 
 # delete form
 f.deleteForm(min_id, max_id, fileName)

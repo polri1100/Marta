@@ -22,8 +22,8 @@ class ItemForm():
             self.item = st.text_input('Articulo')
             self.desc = st.text_input('Descripción')
             if formType == 'submit':
-                self.cost = st.number_input('Coste Sugerido')
-                self.price = st.number_input('Precio Sugerido')
+                self.cost = st.number_input('Coste Sugerido', min_value=0, max_value=None)
+                self.price = st.number_input('Precio Sugerido', min_value=0, max_value=None)
                 self.Button = st.form_submit_button(buttonName)
             else:
                 col1search, col2search = st.columns(2)
@@ -65,7 +65,7 @@ class OrderForm():
                     self.customer = st.selectbox('Cliente', (list_customers))
                     self.item = st.selectbox('Articulo', (list_items))
                     self.desc = st.text_input('Descripción')
-                    self.quantity = st.number_input('Cantidad', step=1)
+                    self.quantity = st.number_input('Cantidad', min_value=0, max_value=None, step=1)
                     
                     self.Button = st.form_submit_button(buttonName)
                 
@@ -78,8 +78,8 @@ class OrderForm():
                         self.price = st.number_input('Precio', min_value=0, max_value=None, value=db_articulos.loc[db_articulos['Articulo'] == self.item, 'Precio Sugerido'].iat[0])
 
                     else:
-                        self.cost = st.number_input('Coste', value = 0)
-                        self.price = st.number_input('Precio', value = 0)                   
+                        self.cost = st.number_input('Coste', min_value=0, max_value=None, value = 0)
+                        self.price = st.number_input('Precio', min_value=0, max_value=None, value = 0)                   
                     self.pickUpDate = st.date_input('Fecha Recogida', None, format="DD/MM/YYYY")
                     self.payed = st.selectbox('Pagado?', ('Pagado', 'No pagado'))
                     
