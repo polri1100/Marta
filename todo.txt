@@ -1,26 +1,24 @@
 
 
-Success message when insterting is correct
-Restriction to variables input (ex. telephon number 9 digits)
-set page.config
-Add fields (customer description, order description)
+Success message when insterting is correct -- Done
+Restriction to variables input (ex. telephon number 9 digits) -- Done
+set page.config -- Done
+Add fields (customer description, order description) -- Done
+forbid deleete customer or item if order is in place -- Done
+Forbid add empty names and items
 Sharepoints instead of excel
-download option
 delete option confirmation
-forbid deleete customer or item if order is in place
 learn how to share
+upload customers and items from Odoo
 
 --Marta test
 
 GPT 4o
 Apply Color to form
+Create viz page
+download option
+Move deleteform to forms
 
 
 -- Final
-upload data from Odoo
-
-
---orden de formulario
-Fecha
-Cliente
-Articulo
+upload orders from Odoo

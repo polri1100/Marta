@@ -4,11 +4,13 @@ import functions as f
 import forms
 
 #title
+st.set_page_config(layout="wide",
+                       page_title='Articulos',
+                       page_icon='👚')
 st.markdown("# Articulos 📦")
 st.sidebar.markdown("# Articulos 📦")
 
 #table calculations
-fileName = f.obtainPath('articulos')
 db = f.obtainTable('articulos')
 max_id, min_id = f.returnMaxMinID(db)
 
@@ -28,7 +30,7 @@ if formSubmit.Button:
                 'Coste Sugerido': [formSubmit.cost], 
                 'Precio Sugerido': [formSubmit.price] }
     
-    db = f.submitDatasource(new_row, fileName, uniqueColumn='Articulo')
+    db = f.submitDatasource(new_row, 'articulos', uniqueColumn='Articulo')
 
 # form search display
 with col2:
@@ -42,4 +44,6 @@ if formSearch.Button:
 f.displayTable(db, 'ID')
 
 # delete form
-f.deleteForm(min_id, max_id, fileName)
+# We asign again to update the max_id in the form
+max_id, min_id = f.returnMaxMinID(db)
+f.deleteForm(min_id, max_id, 'articulos')

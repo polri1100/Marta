@@ -17,6 +17,11 @@ def obtainTable(fileName):
 
     return db
 
+def uploadTable(db, fileName):
+
+    fileName = obtainPath(fileName)
+    db.to_excel(fileName, index=False)
+
 def displayTable(db, sortField='ID'):
     db = db.sort_values(by=[sortField], ascending=False)
     st.dataframe(db, hide_index=True, use_container_width=True)
@@ -50,7 +55,8 @@ def ordersJoin(db_pedidos, db_clientes, db_articulos):
 
 def submitDatasource(new_row, fileName, uniqueColumn=None, restrictedValue=''):
     df_new = pd.DataFrame(new_row)
-    df_existing = pd.read_excel(fileName)
+    #df_existing = pd.read_excel(fileName)
+    df_existing = obtainTable(fileName)
 
     try:
         repeatedValue = new_row[uniqueColumn] in df_existing[uniqueColumn].values
@@ -70,7 +76,8 @@ def submitDatasource(new_row, fileName, uniqueColumn=None, restrictedValue=''):
         return df_existing
     else:
         df_combined = pd.concat([df_existing, df_new])
-        df_combined.to_excel(fileName, index=False)
+        uploadTable(df_combined, fileName)
+        #df_combined.to_excel(fileName, index=False)
         st.success('    Añadido :)', icon="✅")
     return df_combined
 
@@ -97,10 +104,25 @@ def searchFunction(db, instance, *args):
     return db
 
 def deleteRow(fileName, row):
-    db = pd.read_excel(fileName)
-    db = db[db.ID != row]
-    db.to_excel(fileName, index=False)
 
+    if fileName in ('articulos', 'clientes'):
+        
+        db_pedidos = obtainTable('pedidos')
+        db = obtainTable(fileName)
+
+        id_objeto = db.loc[db['ID'] == row]['ID'].values[0]
+
+        if fileName == 'articulos':
+            checkunique = id_objeto in db_pedidos['Articulo_id'].values
+        else: 
+            checkunique = id_objeto in db_pedidos['Cliente_id'].values
+
+        if checkunique:
+            return st.warning('No se puede eliminar porque hay un pedido con este {}'.format(fileName), icon="⚠️")
+
+    db = obtainTable(fileName)
+    db = db[db.ID != row]
+    uploadTable(db, fileName)
     st.rerun()
 
 def deleteForm(min_id, max_id, fileName):
@@ -110,7 +132,7 @@ def deleteForm(min_id, max_id, fileName):
         #column formats
         col1, col2 = st.columns([4,1])
         with col1:
-            deleteNumber = st.number_input('ID', min_value=min_id, max_value=max_id)
+            deleteNumber = st.number_input('ID', min_value=min_id, max_value=max_id, value=max_id)
 
         with col2:
             deleteButton = st.form_submit_button('Eliminar registro')

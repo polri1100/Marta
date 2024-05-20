@@ -4,12 +4,14 @@ import functions as f
 import forms
 
 #title
+st.set_page_config(layout="wide",
+                       page_title='Clientes',
+                       page_icon='👚')
 st.markdown("# Clientes 👨‍🦰👩‍🦰")
 st.sidebar.markdown("# Clientes 👨‍🦰👩‍🦰")
 
 #table calculations
-fileName = f.obtainPath('clientes')
-db = pd.read_excel(fileName)
+db = f.obtainTable('clientes')
 max_id, min_id = f.returnMaxMinID(db)
 
 #table types 
@@ -32,7 +34,7 @@ if formSubmit.Button:
                 'Descripcion': [formSubmit.desc], 
                 'Telefono': [formSubmit.phone]}
     
-    db = f.submitDatasource(new_row, fileName, uniqueColumn='Nombre', restrictedValue=formSubmit.phone)
+    db = f.submitDatasource(new_row, 'clientes', uniqueColumn='Nombre', restrictedValue=formSubmit.phone)
 
 # form search display
 with col2:
@@ -46,4 +48,6 @@ if formSearch.Button:
 f.displayTable(db, 'ID')
 
 # delete form
-f.deleteForm(min_id, max_id, fileName)
+# We asign again to update the max_id in the form
+max_id, min_id = f.returnMaxMinID(db)
+f.deleteForm(min_id, max_id, 'clientes')

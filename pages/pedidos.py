@@ -8,11 +8,13 @@ import forms
 #     st.session_state.payedToggle = False
 
 #title
+st.set_page_config(layout="wide",
+                       page_title='Pedidos',
+                       page_icon='👚')
 st.markdown("# Pedidos 📖")
 st.sidebar.markdown("# Pedidos 📖")
 
 # Load databases
-fileName = f.obtainPath('pedidos')
 db_pedidos = f.obtainTable('pedidos')
 db_articulos = f.obtainTable('articulos')
 db_clientes = f.obtainTable('clientes')
@@ -50,7 +52,7 @@ if formSubmit.Button:
                 'Pagado': [formSubmit.payed],
                 'Fecha Recogida': [formSubmit.pickUpDate]}
     
-    db_joined = f.submitDatasource(new_row=new_row, fileName=fileName)
+    db_joined = f.submitDatasource(new_row=new_row, fileName='pedidos')
    
     #per a tornar a tenir la taula amb els unics camps que volem
     db_pedidos = f.obtainTable('pedidos')
@@ -66,8 +68,9 @@ if formSearch.Button:
     db_joined = f.searchFunction(db_joined, formSearch, "Fecha Entrega", "Nombre", "Articulo", "Descripcion", "Fecha Recogida", "Pagado")
 
 #table display
-print(db_joined)
 f.displayTable(db_joined, 'ID')
 
 # delete form
-f.deleteForm(min_id, max_id, fileName)
+# We asign again to update the max_id in the form
+max_id, min_id = f.returnMaxMinID(db_pedidos)
+f.deleteForm(min_id, max_id, 'pedidos')
