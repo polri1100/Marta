@@ -132,9 +132,6 @@ def deleteForm(min_id, max_id, fileName):
     if "deleteButton" not in st.session_state:
         st.session_state.deleteButton = False
 
-    if "confirmation" not in st.session_state:
-        st.session_state.confirmation = False
-
     def click_button():
         st.session_state.deleteButton = True
 
@@ -161,13 +158,13 @@ def deleteForm(min_id, max_id, fileName):
     if st.session_state.deleteButton:
         st.session_state.deleteButton = True
         st.warning('Estas segura que quieres borrar? Esta opcion no se puede deshacer')
-        st.session_state.confirmation = st.button("Si! Estoy segura")
+        confirmationButton = st.button("Si! Estoy segura")
 
         # If confirmation button is not clicked, stop execution
-        if not st.session_state.confirmation:
+        if not confirmationButton:
             return
         
-        if st.session_state.deleteButton and st.session_state.confirmation:
+        if st.session_state.deleteButton and confirmationButton:
             st.session_state.deleteButton = False
             deleteRow(fileName, deleteNumber)
             st.success('Borrado :)', icon="✅")
