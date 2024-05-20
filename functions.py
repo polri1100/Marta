@@ -55,30 +55,29 @@ def ordersJoin(db_pedidos, db_clientes, db_articulos):
 
 def submitDatasource(new_row, fileName, uniqueColumn=None, restrictedValue=''):
     df_new = pd.DataFrame(new_row)
-    #df_existing = pd.read_excel(fileName)
     df_existing = obtainTable(fileName)
 
+    
+    if new_row[uniqueColumn] == ['']:
+        st.warning('El nombre no puede estar vacio', icon="⚠️")
+        return df_existing
+    
     try:
         repeatedValue = new_row[uniqueColumn] in df_existing[uniqueColumn].values
-    except Exception:
-        repeatedValue = False
-
-    if len(restrictedValue) == 9 or restrictedValue == '':
-        acceptedValue = True
-    else:
-        acceptedValue = False
-
-    if repeatedValue:
         st.warning('El nombre ya existe. No puede haber dos {}s iguales'.format(uniqueColumn.lower()), icon="⚠️")
         return df_existing
-    elif acceptedValue==False:
+    except Exception:
+        pass
+
+    if len(restrictedValue) == 9 or restrictedValue == '':
+        pass
+    else:
         st.warning('El telefono debe contener nueve digitos', icon="⚠️")
         return df_existing
-    else:
-        df_combined = pd.concat([df_existing, df_new])
-        uploadTable(df_combined, fileName)
-        #df_combined.to_excel(fileName, index=False)
-        st.success('    Añadido :)', icon="✅")
+
+    df_combined = pd.concat([df_existing, df_new])
+    uploadTable(df_combined, fileName)
+    st.success('    Añadido :)', icon="✅")
     return df_combined
 
 def searchFunction(db, instance, *args):
