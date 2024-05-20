@@ -1,6 +1,9 @@
 import os
 import pandas as pd
 import streamlit as st
+from streamlit_modal import Modal
+import streamlit.components.v1 as components
+
 from pathlib import Path
 import datetime
 
@@ -126,6 +129,15 @@ def deleteRow(fileName, row):
 
 def deleteForm(min_id, max_id, fileName):
 
+    if "deleteButton" not in st.session_state:
+        st.session_state.deleteButton = False
+
+    if "confirmation" not in st.session_state:
+        st.session_state.confirmation = False
+
+    def click_button():
+        st.session_state.deleteButton = True
+
     with st.form(key='item-form-delete'):
         st.write("Formulario para Borrar")
         #column formats
@@ -134,7 +146,7 @@ def deleteForm(min_id, max_id, fileName):
             deleteNumber = st.number_input('ID', min_value=min_id, max_value=max_id, value=max_id)
 
         with col2:
-            deleteButton = st.form_submit_button('Eliminar registro')
+            st.form_submit_button('Eliminar registro', on_click=click_button)
 
         # css="""
         # <style>
@@ -146,7 +158,18 @@ def deleteForm(min_id, max_id, fileName):
 
         # st.write(css, unsafe_allow_html=True)
 
-    if deleteButton:
-        deleteRow(fileName, deleteNumber)
+    if st.session_state.deleteButton:
+        st.session_state.deleteButton = True
+        st.warning('Estas segura que quieres borrar? Esta opcion no se puede deshacer')
+        st.session_state.confirmation = st.button("Si! Estoy segura")
+
+        # If confirmation button is not clicked, stop execution
+        if not st.session_state.confirmation:
+            return
+        
+        if st.session_state.deleteButton and st.session_state.confirmation:
+            st.session_state.deleteButton = False
+            deleteRow(fileName, deleteNumber)
+            st.success('Borrado :)', icon="✅")
 
 

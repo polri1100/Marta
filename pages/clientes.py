@@ -3,6 +3,7 @@ import pandas as pd
 import functions as f
 import forms
 
+
 #title
 st.set_page_config(layout="wide",
                        page_title='Clientes',

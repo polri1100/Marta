@@ -5,9 +5,9 @@ Restriction to variables input (ex. telephon number 9 digits) -- Done
 set page.config -- Done
 Add fields (customer description, order description) -- Done
 forbid deleete customer or item if order is in place -- Done
-Forbid add empty names and items
+Forbid add empty names and items -- Done
 Sharepoints instead of excel
-delete option confirmation
+delete option confirmation -- Done
 learn how to share
 upload customers and items from Odoo
 
