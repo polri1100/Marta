@@ -67,7 +67,7 @@ class OrderForm():
                     self.desc = st.text_input('Descripción')
                     self.quantity = st.number_input('Cantidad', min_value=0, max_value=None, step=1)
                     
-                    self.Button = st.form_submit_button(buttonName)
+
                 
                 with col2submit:
                     self.suggestedButton = st.form_submit_button('Ver precios sugeridos')
@@ -87,6 +87,8 @@ class OrderForm():
                         self.payed = True
                     else:
                         self.payed = False
+
+                    self.Button = st.form_submit_button(buttonName)
                     
 
 
