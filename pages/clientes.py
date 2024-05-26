@@ -46,6 +46,7 @@ if formSearch.Button:
     db = f.searchFunction(db, formSearch, "Nombre", "Descripcion", "Telefono")
 
 #table display
+db['Telefono'] = db['Telefono'].astype(str)
 f.displayTable(db, 'ID')
 
 # delete form

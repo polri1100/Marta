@@ -181,3 +181,7 @@ websockets==12.0
 wrapt==1.16.0
 yarl==1.9.4
 zipp==3.18.1
+
+google-api-python-client==1.7.9
+google-auth-httplib2==0.0.3
+google-auth-oauthlib==0.4.0

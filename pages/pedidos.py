@@ -52,7 +52,7 @@ if formSubmit.Button:
                 'Pagado': [formSubmit.payed],
                 'Fecha Recogida': [formSubmit.pickUpDate]}
     
-    db_joined = f.submitDatasource(new_row=new_row, fileName='pedidos')
+    db_joined = f.submitDatasource(newRow=new_row, fileName='pedidos')
    
     #per a tornar a tenir la taula amb els unics camps que volem
     db_pedidos = f.obtainTable('pedidos')

@@ -1,31 +1,37 @@
 import os
+import pygsheets
 import pandas as pd
+import pyarrow as pa
 import streamlit as st
 from streamlit_modal import Modal
 import streamlit.components.v1 as components
-
 from pathlib import Path
 import datetime
 
-def obtainPath(fileName):
-    path = Path(os.getcwd()).parent.absolute() / "Marta/data/"
-    path = path / str(fileName) 
-    path = str(path) + ".xlsx"
+def obtainSheet(sheetName):
 
-    return path
+    client = pygsheets.authorize(service_account_file='credentials.json')
 
-def obtainTable(fileName):
-    path = obtainPath(fileName)
-    db = pd.read_excel(path)
+    excel = client.open_by_url('https://docs.google.com/spreadsheets/d/1pz_MPwerlbM5--sAdBykbcImsRL-zNGezqLI69oX-ac/edit?usp=sharing')
+    sheet = excel.worksheet_by_title(sheetName)
+
+    return sheet
+
+def obtainTable(sheetName):
+    
+    sheet = obtainSheet(sheetName)
+    db = sheet.get_as_df()
 
     return db
 
-def uploadTable(db, fileName):
+def uploadTable(db, sheetName):
 
-    fileName = obtainPath(fileName)
-    db.to_excel(fileName, index=False)
+    sheet = obtainSheet(sheetName)
+    sheet.resize(db.shape[0],db.shape[1])
+    sheet.set_dataframe(db, start= (1,1))
 
 def displayTable(db, sortField='ID'):
+
     db = db.sort_values(by=[sortField], ascending=False)
     st.dataframe(db, hide_index=True, use_container_width=True)
 
@@ -46,31 +52,34 @@ def ordersJoin(db_pedidos, db_clientes, db_articulos):
                         'Pagado', 'Fecha Recogida']]
 
     db_joined["Pagado"] = db_joined["Pagado"].astype('bool')
-    db_joined["Fecha Entrega"] = db_joined["Fecha Entrega"].dt.strftime('%d/%m/%Y')
-    db_joined["Fecha Recogida"] = db_joined["Fecha Recogida"].dt.strftime('%d/%m/%Y')
+    db_joined['Fecha Entrega'] = pd.to_datetime(db_joined['Fecha Entrega'], format="%Y-%m-%d")
+    db_joined['Fecha Recogida'] = pd.to_datetime(db_joined['Fecha Recogida'], format="%Y-%m-%d")
 
     db_joined.rename(columns={'ID_x': 'ID'}, inplace=True)
     db_joined.rename(columns={'Descripcion_x': 'Descripcion'}, inplace=True)
 
-
     return db_joined
 
+def submitDatasource(newRow, fileName, uniqueColumn=None, restrictedValue=''):
 
-def submitDatasource(new_row, fileName, uniqueColumn=None, restrictedValue=''):
-    df_new = pd.DataFrame(new_row)
+    df_new = pd.DataFrame(newRow)
     df_existing = obtainTable(fileName)
 
+    if fileName == 'pedidos':
+        df_new['Fecha Entrega'] = pd.to_datetime(df_new['Fecha Entrega'], format="%Y-%m-%d")
+        df_new['Fecha Recogida'] = pd.to_datetime(df_new['Fecha Recogida'], format="%Y-%m-%d")
+        
+        df_existing['Fecha Entrega'] = pd.to_datetime(df_existing['Fecha Entrega'], format="%Y-%m-%d")
+        df_existing['Fecha Recogida'] = pd.to_datetime(df_existing['Fecha Recogida'], format="%Y-%m-%d")
+
+    if uniqueColumn is not None: 
+        if newRow[uniqueColumn] == ['']:
+            st.warning('El nombre no puede estar vacio', icon="⚠️")
+            return df_existing
     
-    if new_row[uniqueColumn] == ['']:
-        st.warning('El nombre no puede estar vacio', icon="⚠️")
-        return df_existing
-    
-    try:
-        repeatedValue = new_row[uniqueColumn] in df_existing[uniqueColumn].values
-        st.warning('El nombre ya existe. No puede haber dos {}s iguales'.format(uniqueColumn.lower()), icon="⚠️")
-        return df_existing
-    except Exception:
-        pass
+        if newRow[uniqueColumn] in df_existing[uniqueColumn].values:
+            st.warning('El nombre ya existe. No puede haber dos {}s iguales'.format(uniqueColumn.lower()), icon="⚠️")
+            return df_existing
 
     if len(restrictedValue) == 9 or restrictedValue == '':
         pass
@@ -78,9 +87,11 @@ def submitDatasource(new_row, fileName, uniqueColumn=None, restrictedValue=''):
         st.warning('El telefono debe contener nueve digitos', icon="⚠️")
         return df_existing
 
-    df_combined = pd.concat([df_existing, df_new])
+    df_combined = pd.concat([df_existing, df_new], ignore_index=True)
     uploadTable(df_combined, fileName)
-    st.success('    Añadido :)', icon="✅")
+    st.success('Añadido :)', icon="✅")
+    df_combined = obtainTable(fileName)
+
     return df_combined
 
 def searchFunction(db, instance, *args):
@@ -108,7 +119,6 @@ def searchFunction(db, instance, *args):
 def deleteRow(fileName, row):
 
     if fileName in ('articulos', 'clientes'):
-        
         db_pedidos = obtainTable('pedidos')
         db = obtainTable(fileName)
 
@@ -126,6 +136,8 @@ def deleteRow(fileName, row):
     db = db[db.ID != row]
     uploadTable(db, fileName)
     st.rerun()
+
+    return checkunique
 
 def deleteForm(min_id, max_id, fileName):
 
@@ -166,7 +178,8 @@ def deleteForm(min_id, max_id, fileName):
         
         if st.session_state.deleteButton and confirmationButton:
             st.session_state.deleteButton = False
-            deleteRow(fileName, deleteNumber)
-            st.success('Borrado :)', icon="✅")
+            checkunique = deleteRow(fileName, deleteNumber)
+            if not checkunique:
+                st.success('Borrado :)', icon="✅")
 
 
