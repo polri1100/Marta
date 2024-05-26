@@ -1,11 +1,6 @@
-import os
 import pygsheets
 import pandas as pd
-import pyarrow as pa
 import streamlit as st
-from streamlit_modal import Modal
-import streamlit.components.v1 as components
-from pathlib import Path
 import datetime
 
 def obtainSheet(sheetName):
@@ -50,11 +45,9 @@ def ordersJoin(db_pedidos, db_clientes, db_articulos):
                         'Articulo', 'Descripcion_x',
                         'Cantidad', 'Coste', 'Precio',
                         'Pagado', 'Fecha Recogida']]
-
     db_joined["Pagado"] = db_joined["Pagado"].astype('bool')
     db_joined['Fecha Entrega'] = pd.to_datetime(db_joined['Fecha Entrega'], format="%Y-%m-%d")
     db_joined['Fecha Recogida'] = pd.to_datetime(db_joined['Fecha Recogida'], format="%Y-%m-%d")
-
     db_joined.rename(columns={'ID_x': 'ID'}, inplace=True)
     db_joined.rename(columns={'Descripcion_x': 'Descripcion'}, inplace=True)
 
