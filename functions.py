@@ -3,6 +3,7 @@ import pandas as pd
 import streamlit as st
 import datetime
 
+
 def obtainSheet(sheetName):
 
     client = pygsheets.authorize(service_account_file='credentials.json')
@@ -16,7 +17,7 @@ def obtainTable(sheetName):
     
     sheet = obtainSheet(sheetName)
     db = sheet.get_as_df()
-
+    print(db)
     return db
 
 def uploadTable(db, sheetName):
