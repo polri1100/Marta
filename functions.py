@@ -6,7 +6,7 @@ import datetime
 credentials  = {"type": "service_account",
     "project_id": "martacostura",
     "private_key_id": "fce6e0f0d0d4688261fd3f40b6fba53e87089c3d",
-    "private_key": st.secret('PRIVATE_KEY'),
+    "private_key": st.secrets('PRIVATE_KEY'),
     "client_email": "marta-costura-sheets@martacostura.iam.gserviceaccount.com",
     "client_id": "116789383299631603165",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
