@@ -3,19 +3,6 @@ import pandas as pd
 import streamlit as st
 import datetime
 
-credentials  = {"type": "service_account",
-    "project_id": "martacostura",
-    "private_key_id": "fce6e0f0d0d4688261fd3f40b6fba53e87089c3d",
-    "private_key": st.secrets('PRIVATE_KEY'),
-    "client_email": "marta-costura-sheets@martacostura.iam.gserviceaccount.com",
-    "client_id": "116789383299631603165",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/marta-costura-sheets%40martacostura.iam.gserviceaccount.com",
-    "universe_domain": "googleapis.com"
-    }
-
 def obtainSheet(sheetName):
 
     client = pygsheets.authorize(service_account_file='streamlit/secrets.toml')
