@@ -6,19 +6,28 @@ set page.config -- Done
 Add fields (customer description, order description) -- Done
 forbid deleete customer or item if order is in place -- Done
 Forbid add empty names and items -- Done
-Sharepoints instead of excel
+Sharepoints instead of excel -- Done
 delete option confirmation -- Done
-learn how to share
+learn how to share -- Done
 upload customers and items from Odoo
 
 --Marta test
 
-GPT 4o
-Apply Color to form
-Create viz page
+create tests
+minusculas mayusculas en busqueda y en creacion de articulos
+upload row instead of uploading all new table
+Valores Nulos
+Add loading text
+Create informes page
 download option
 Move deleteform to forms
-
+password
+cambiar a por defecto no pagado
+revisar mensaje confirmacion borrado 
+change google account
 
 -- Final
+
 upload orders from Odoo
+GPT 4o
+Parlar amb laia per diseny
