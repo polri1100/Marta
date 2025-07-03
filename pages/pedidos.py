@@ -20,7 +20,6 @@ db_clientes = f.obtainTable('clientes')
 
 #Join Databases
 db_joined = f.ordersJoin(db_pedidos, db_clientes, db_articulos)
-
 #table calculations
 list_items = db_articulos['Articulo'].unique()
 list_customers = db_clientes['Nombre'].unique()
@@ -34,6 +33,7 @@ with col1:
     formSubmit = forms.OrderForm('submit', 'Formulario para Insertar','Guardar registro', list_items, list_customers, db_articulos)
 
 if formSubmit.Button:
+
 
     #ids detection:
     customer_id = db_clientes.loc[db_clientes['Nombre'] == formSubmit.customer, 'ID'].values[0]
@@ -68,7 +68,6 @@ if formSearch.Button:
 
 #table display
 f.displayTable(db_joined, 'ID')
-
 # delete form
 # We asign again to update the max_id in the form
 max_id, min_id = f.returnMaxMinID(db_pedidos)

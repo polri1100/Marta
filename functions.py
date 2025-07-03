@@ -19,7 +19,6 @@ def obtainTable(sheetName):
     
     sheet = obtainSheet(sheetName)
     db = sheet.get_as_df()
-    print(db)
     return db
 
 def uploadTable(db, sheetName):
@@ -31,7 +30,7 @@ def uploadTable(db, sheetName):
 def displayTable(db, sortField='ID'):
 
     db = db.sort_values(by=[sortField], ascending=False)
-    st.dataframe(db, hide_index=True, use_container_width=True)
+    st.data_editor(db, hide_index=True, use_container_width=True)
 
 def returnMaxMinID(db):
     max_id = db['ID'].max()
@@ -41,6 +40,8 @@ def returnMaxMinID(db):
 
 def ordersJoin(db_pedidos, db_clientes, db_articulos):
     
+    db_pedidos["Pagado"] = db_pedidos["Pagado"].map({"TRUE":True, "FALSE":False}).astype("bool") #necesario para el valor sea booleano
+
     db_joined = db_pedidos.merge(db_clientes, left_on='Cliente_id', right_on='ID', how='left')
     db_joined = db_joined.merge(db_articulos, left_on='Articulo_id', right_on='ID', how='left')
     db_joined = db_joined[['ID_x', 'Fecha Entrega', 
@@ -48,7 +49,6 @@ def ordersJoin(db_pedidos, db_clientes, db_articulos):
                         'Articulo', 'Descripcion_x',
                         'Cantidad', 'Coste', 'Precio',
                         'Pagado', 'Fecha Recogida']]
-    db_joined["Pagado"] = db_joined["Pagado"].astype('bool')
     db_joined['Fecha Entrega'] = pd.to_datetime(db_joined['Fecha Entrega'], format="%Y-%m-%d")
     db_joined['Fecha Recogida'] = pd.to_datetime(db_joined['Fecha Recogida'], format="%Y-%m-%d")
     db_joined.rename(columns={'ID_x': 'ID'}, inplace=True)

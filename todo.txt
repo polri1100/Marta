@@ -14,20 +14,27 @@ upload customers and items from Odoo
 --Marta test
 
 create tests
-minusculas mayusculas en busqueda y en creacion de articulos
 upload row instead of uploading all new table
 Valores Nulos
-Add loading text
 Create informes page
 download option
 Move deleteform to forms
 password
-cambiar a por defecto no pagado
 revisar mensaje confirmacion borrado 
 change google account
 
--- Final
 
+
+--- Nuevo todo pol
+cambiar base de datos (googleSheets->data warehouse)
+investigar cómo abrir desde ipad
+valores Nulos
+investigar por qué tarda tanto
 upload orders from Odoo
-GPT 4o
-Parlar amb laia per diseny
+
+
+--Nuevo todo teo
+implementar modificación de clientes
+implementar modificación de pedidos
+minusculas mayusculas en busqueda y en creacion de articulos
+Add loading text

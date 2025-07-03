@@ -81,7 +81,7 @@ class OrderForm():
                         self.cost = st.number_input('Coste', min_value=0, max_value=None, value = 0)
                         self.price = st.number_input('Precio', min_value=0, max_value=None, value = 0)                   
                     self.pickUpDate = st.date_input('Fecha Recogida', None, format="DD/MM/YYYY")
-                    self.payed = st.selectbox('Pagado?', ('Pagado', 'No pagado'))
+                    self.payed = st.selectbox('Pagado', ('No pagado', 'Pagado'))
                     
                     if self.payed == 'Pagado':
                         self.payed = True
