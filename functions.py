@@ -153,16 +153,6 @@ def deleteForm(min_id, max_id, fileName):
         with col2:
             st.form_submit_button('Eliminar registro', on_click=click_button)
 
-        # css="""
-        # <style>
-        #     [data-testid="stForm"]:nth-child(1) {
-        #         background-color: red;
-        #     }
-        # </style>
-        # """
-
-        # st.write(css, unsafe_allow_html=True)
-
     if st.session_state.deleteButton:
         st.session_state.deleteButton = True
         st.warning('Estas segura que quieres borrar? Esta opcion no se puede deshacer')
