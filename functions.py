@@ -168,4 +168,12 @@ def deleteForm(min_id, max_id, fileName):
             if not checkunique:
                 st.success('Borrado :)', icon="✅")
 
+def save_data(db, sheetName):
 
+    try:
+        sheet = obtainSheet(sheetName)
+        sheet.resize(db.shape[0], db.shape[1]) #el tamaño ha de ser el mismo
+        sheet.set_dataframe(db, start=(1, 1))  # Carga el DataFrame en la hoja, desde la celda A1 (1,1)
+        st.success(f"¡Cambios guardados en la hoja '{sheetName}' con éxito!")
+    except Exception as e:
+        st.error(f"Error al guardar los cambios en la hoja '{sheetName}': {e}")
