@@ -34,7 +34,7 @@ upload orders from Odoo
 
 
 --Nuevo todo teo
-implementar modificación de clientes
-implementar modificación de pedidos
+implementar modificación de clientes hecha
+implementar modificación de pedidos  hecha
 minusculas mayusculas en busqueda y en creacion de articulos
 Add loading text

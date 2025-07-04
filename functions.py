@@ -8,7 +8,6 @@ def obtainSheet(sheetName):
 
     client = pygsheets.authorize(service_account_file="credentials.json")
 
-    #client = pygsheets.authorize(service_account_file=json.loads('streamlit/secrets.toml', strict=False))
 
     excel = client.open_by_url('https://docs.google.com/spreadsheets/d/1pz_MPwerlbM5--sAdBykbcImsRL-zNGezqLI69oX-ac/edit?usp=sharing')
     sheet = excel.worksheet_by_title(sheetName)
