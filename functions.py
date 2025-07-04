@@ -107,7 +107,7 @@ def searchFunction(db, instance, *args):
             db = db.loc[db[args[count]]==instAtr]
         else:
             if instAtr not in (' '):
-                db = db[db[args[count]].str.contains(instAtr, na=False)]
+                db = db[db[args[count]].astype(str).str.lower().str.contains(str(instAtr).lower(), na=False)]
 
     return db
 
