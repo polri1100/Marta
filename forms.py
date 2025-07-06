@@ -85,8 +85,8 @@ class OrderForm():
                 with col2submit:
                     self.suggestedButton = st.form_submit_button('Ver precios sugeridos')
 
-                    default_cost_value = 0
-                    default_price_value = 0
+                    default_cost_value = 0.0
+                    default_price_value = 0.0
 
                     if self.suggestedButton and db_articulos is not None:
                         try:
@@ -98,8 +98,8 @@ class OrderForm():
                             st.warning(f"Error al obtener precios sugeridos: {e}. Asegúrate de que las columnas 'Coste Sugerido' y 'Precio Sugerido' existen y que el artículo seleccionado es válido.")
 
 
-                    self.cost = st.number_input('Coste', min_value=0, max_value=None, value=float(default_cost_value)) # Asegurar float
-                    self.price = st.number_input('Precio', min_value=0, max_value=None, value=float(default_price_value)) # Asegurar float
+                    self.cost = st.number_input('Coste', min_value=0.0, max_value=None, value=float(default_cost_value)) # Asegurar float
+                    self.price = st.number_input('Precio', min_value=0.0, max_value=None, value=float(default_price_value)) # Asegurar float
                     
                     self.pickUpDate = st.date_input('Fecha Recogida', None, format="DD/MM/YYYY")
                     payed_selection = st.selectbox('Pagado', ('No pagado', 'Pagado'))
