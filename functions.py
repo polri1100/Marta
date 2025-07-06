@@ -176,3 +176,59 @@ def save_data(db, sheetName):
         st.success(f"¡Cambios guardados en la hoja '{sheetName}' con éxito!")
     except Exception as e:
         st.error(f"Error al guardar los cambios en la hoja '{sheetName}': {e}")
+
+
+def autocomplete_text_input(label, current_value, options_list, form_key_suffix):
+    """
+    Muestra un text_input y, si hay valor, un selectbox con sugerencias.
+    Retorna el valor seleccionado o el valor del text_input si no hay selección.
+    """
+    # La key del text_input debe ser única
+    text_input_key = f"{label}_text_{form_key_suffix}"
+    text_input_value = st.text_input(label, value=current_value, key=text_input_key)
+
+    selected_suggestion = text_input_value # Valor por defecto si no hay sugerencia seleccionada
+
+    if text_input_value:
+        # Filtrar opciones basadas en la entrada (case-insensitive)
+        filtered_options = [
+            opt for opt in options_list
+            if text_input_value.lower() in str(opt).lower()
+        ]
+
+        if filtered_options:
+            # Añadir una opción vacía para permitir deseleccionar
+            display_options = [""] + sorted(filtered_options)
+
+            default_index = 0
+            if text_input_value.lower() in [s.lower() for s in filtered_options]:
+                try:
+                    # Busca la posición exacta del valor actual en la lista de opciones
+                    # para preseleccionar si ya ha escrito algo que es una opción completa
+                    for i, opt in enumerate(display_options):
+                        if str(opt).lower() == text_input_value.lower():
+                            default_index = i
+                            break
+                except ValueError:
+                    pass # No se encontró una coincidencia exacta, se mantiene default_index = 0
+            elif len(filtered_options) == 1:
+                # Si solo hay una sugerencia, pre-seleccionar esa
+                default_index = display_options.index(filtered_options[0]) if filtered_options[0] in display_options else 0
+
+
+            # La key del selectbox debe ser única
+            suggestion_selection = st.selectbox(
+                f"Sugerencias para {label}",
+                options=display_options,
+                index=default_index,
+                key=f"{label}_suggestion_{form_key_suffix}"
+            )
+
+            # Si el usuario selecciona una sugerencia (y no es la opción vacía), usar esa.
+            if suggestion_selection:
+                selected_suggestion = suggestion_selection
+            else:
+                # Si la sugerencia se vació o no se seleccionó, usar el valor del text_input
+                selected_suggestion = text_input_value
+
+    return selected_suggestion

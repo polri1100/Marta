@@ -9,8 +9,8 @@ import pandas as pd
 
 #title
 st.set_page_config(layout="wide",
-                       page_title='Pedidos',
-                       page_icon='👚')
+                        page_title='Pedidos',
+                        page_icon='👚')
 st.markdown("# Pedidos 📖")
 st.sidebar.markdown("# Pedidos 📖")
 
@@ -53,7 +53,7 @@ if formSubmit.Button:
                 'Fecha Recogida': [formSubmit.pickUpDate]}
     
     db_joined = f.submitDatasource(newRow=new_row, fileName='pedidos')
-   
+    
     #per a tornar a tenir la taula amb els unics camps que volem
     db_pedidos = f.obtainTable('pedidos')
     db_joined = f.ordersJoin(db_pedidos, db_clientes, db_articulos)

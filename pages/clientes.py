@@ -6,8 +6,8 @@ import pandas as pd
 
 #title
 st.set_page_config(layout="wide",
-                       page_title='Clientes',
-                       page_icon='👚')
+                        page_title='Clientes',
+                        page_icon='👚')
 st.markdown("# Clientes 👨‍🦰👩‍🦰")
 st.sidebar.markdown("# Clientes 👨‍🦰👩‍🦰")
 
