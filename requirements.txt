@@ -2,3 +2,4 @@ streamlit
 pandas
 pygsheets
 pip
+supabase
