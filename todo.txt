@@ -38,7 +38,8 @@ implementar modificación de clientes hecha
 implementar modificación de pedidos  hecha
 minusculas mayusculas en busqueda y en creacion de articulos hecha
 autocompletar nombres y articulos en pedidos hecha
-Add loading text 
-fechas recogida
+fechas recogida hecha
 columna tarjeta o efectivo
 beneficio y columna iva
+Add loading text 
+

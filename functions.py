@@ -92,23 +92,44 @@ def submitDatasource(newRow, fileName, uniqueColumn=None, restrictedValue=''):
 def searchFunction(db, instance, *args):
     formSearchArgsList = []
     for i in instance.__dict__.keys():
-        if i not in ('title', 'Button', 'ButtonReset'):
+        if i not in ('title', 'Button', 'ButtonReset', 'suggestedButton'):
             formSearchArgsList.append(i)
 
     for count, j in enumerate(formSearchArgsList):
         instAtr =  getattr(instance, j)
-        if instAtr is None:
+        if instAtr is None or instAtr == '' or instAtr == ' ': # Manejar None, cadena vacía o espacio para no filtrar
             pass
         elif type(instAtr) is datetime.date:
-            dt_obj = datetime.datetime.strptime(str(instAtr),'%Y-%m-%d')
-            dt_obj = dt_obj.strftime('%d/%m/%Y')
-            db = db.loc[db[args[count]]==dt_obj]
+            # 1. Obtener la columna de la base de datos
+            db_column_name = args[count]
+
+            # 2. Asegurarse de que la columna de la DB es de tipo datetime
+            #    Si no lo es, convertirla. Esto es CRUCIAL.
+            #    Manejar errores si la conversión falla (por datos sucios)
+            try:
+                # Intenta convertir la columna de la DB a datetime, forzando errores si no se puede
+                db[db_column_name] = pd.to_datetime(db[db_column_name], errors='coerce', dayfirst=True)
+                # 'dayfirst=True' es importante si tus fechas están como 'DD/MM/YYYY' en la DB
+            except Exception as e:
+                st.error(f"Error al convertir la columna '{db_column_name}' a formato de fecha: {e}. Por favor, revise los datos en su tabla.")
+                # Si hay un error en la conversión, no se puede buscar por esta columna
+                continue # Pasa a la siguiente iteración del bucle
+
+            # 3. Comparar solo la parte de la fecha (year, month, day)
+            #    Convertir el datetime.date del formulario a datetime.datetime para la comparación
+            #    y luego extraer solo la parte de la fecha de ambos.
+            db = db.loc[
+                (db[db_column_name].dt.date == instAtr) & # Compara solo la fecha del objeto datetime con la fecha del formulario
+                (db[db_column_name].notna()) # Asegura que no estamos comparando con NaT (Not a Time)
+            ]
+
         elif type(instAtr) is bool:
             db = db.loc[db[args[count]]==instAtr]
         else:
-            if instAtr not in (' '):
-                db = db[db[args[count]].astype(str).str.lower().str.contains(str(instAtr).lower(), na=False)]
-
+            # Para campos de texto (nombre, articulo, descripcion)
+            # Convertir ambos a minúsculas para la comparación case-insensitive
+            # Y asegurar que la columna de la DB es string antes de .str.lower()
+            db = db[db[args[count]].astype(str).str.lower().str.contains(str(instAtr).lower(), na=False)]
     return db
 
 def deleteRow(fileName, row):
