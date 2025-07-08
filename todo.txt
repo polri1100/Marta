@@ -39,6 +39,8 @@ implementar modificación de pedidos  hecha
 minusculas mayusculas en busqueda y en creacion de articulos hecha
 autocompletar nombres y articulos en pedidos hecha
 fechas recogida hecha
+
+suggest prices
 columna tarjeta o efectivo
 beneficio y columna iva
 Add loading text 
