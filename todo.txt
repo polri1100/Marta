@@ -26,12 +26,15 @@ change google account
 
 
 --- Nuevo todo pol
-cambiar base de datos (googleSheets->data warehouse)
-investigar cómo abrir desde ipad
-valores Nulos
-investigar por qué tarda tanto
+cambiar base de datos (googleSheets->data warehouse) hecha
+investigar cómo abrir desde ipad hecha
+valores Nulos   
+investigar por qué tarda tanto hecha
 upload orders from Odoo
 
+
+HABLAR CON MARTA
+crear tabla proveedores
 
 --Nuevo todo teo
 implementar modificación de clientes hecha
@@ -43,5 +46,5 @@ fechas recogida hecha
 suggest prices
 columna tarjeta o efectivo
 beneficio y columna iva
-Add loading text 
+página de analisis
 
