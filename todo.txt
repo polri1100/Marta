@@ -32,19 +32,22 @@ valores Nulos
 investigar por qué tarda tanto hecha
 upload orders from Odoo
 
+PEDIDOS TABLA: Entrega_Cliente, Cliente, Articulo, Descripcion, Cantidad, Proveedor, Coste_material, Coste_proveedor, Importe, Pagado, Limite, Entrega_Proveedor, Recogida_Proveedor, Recogida_Cliente
+PEDIDOS FORMULARIO: Entrega_Cliente, Cliente, Articulo, Descripcion, Cantidad, Proveedor (Alicia, Dani, Manuela, Mari, Marlen, Marta), Pagado, Limite
+
 
 HABLAR CON MARTA
 crear tabla proveedores
 
 --Nuevo todo teo
-implementar modificación de clientes hecha
-implementar modificación de pedidos  hecha
-minusculas mayusculas en busqueda y en creacion de articulos hecha
-autocompletar nombres y articulos en pedidos hecha
-fechas recogida hecha
+minusculas mayusculas en busqueda y en creacion de articulos 
+autocompletar en clientes, articulos y pedidos 
+Costes y Precio se ponen automaticamente con el artículo, los quitamos del forms
+Quitar formulario de insertar en articulos
+Ordenar tabla de pedidos por Entrega_Cliente orden descendiente
+Cantidad por defecto = 1
+Insertar Pedidos y buscar pedidos POR SEPARADO
+Contabilidad (mes y días numeritos y graficos)
 
-suggest prices
-columna tarjeta o efectivo
-beneficio y columna iva
-página de analisis
+
 
