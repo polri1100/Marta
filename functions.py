@@ -3,6 +3,7 @@ import streamlit as st
 import datetime
 from supabase import create_client, Client 
 import time
+import unidecode
 
 # Cargar credenciales desde secrets.toml
 @st.cache_resource # Cachea la conexión a Supabase para no reconectar en cada rerun
@@ -14,378 +15,271 @@ def init_supabase_client():
 
 supabase = init_supabase_client()
 
-# --- Función para obtener tablas (Leer) ---
-def obtainTable(table_name):
+def normalize_string(s):
+    """Normalizes a string by converting to lowercase, removing accents, and stripping whitespace."""
+    if s is None:
+        return ""
+    return unidecode.unidecode(str(s)).lower().strip()
+
+def obtainTable(tableName):
+    """
+    Obtains data from a specified Supabase table.
+    Returns a pandas DataFrame, or an empty DataFrame if an error occurs.
+    """
     try:
-        response = supabase.table(table_name).select("*").execute()
-        if response.data:
-            df = pd.DataFrame(response.data)
-
-            # Convertir columnas de fecha a tipo datetime.date para facilitar la manipulación
-            date_columns_map = {
-                'Pedidos': ['Entrega_Cliente', 'Limite', 'Entrega_Proveedor', 'Recogida_Proveedor', 'Recogida_Cliente'],
-                # Agrega aquí otras tablas y sus columnas de fecha si las tuvieran
+        response = supabase.table(tableName).select("*").order("ID", desc=True).limit(1000).execute()
+        data = response.data
+        if data:
+            df = pd.DataFrame(data)
+            # Convert date columns to datetime.date objects
+            date_columns = {
+                'Entrega_Cliente', 'Limite', 'Entrega_Proveedor',
+                'Recogida_Proveedor', 'Recogida_Cliente'
             }
-            
-            if table_name in date_columns_map:
-                for col in date_columns_map[table_name]:
-                    if col in df.columns:
-                        # Convertir a datetime y luego a date object, manejando errores
-                        df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
-            
-            # Asegurarse de que la columna 'ID' sea entera si existe
-            if 'ID' in df.columns:
-                df['ID'] = pd.to_numeric(df['ID'], errors='coerce').fillna(0).astype(int)
-
+            for col in date_columns:
+                if col in df.columns:
+                    df[col] = pd.to_datetime(df[col], errors='coerce').dt.date
             return df
         else:
-            return pd.DataFrame() # Retorna un DataFrame vacío si no hay datos
+            return pd.DataFrame()
     except Exception as e:
-        st.error(f"Error al obtener datos de la tabla '{table_name}' de Supabase: {e}")
-        return pd.DataFrame() # Retorna un DataFrame vacío en caso de error
-
-# --- Función para insertar un registro (Create) ---
-def insert_record(table_name, data):
-    try:
-        # Asegurarse de que los objetos datetime.date se conviertan a strings ISO 8601
-        # antes de enviarlos a Supabase
-        payload = {}
-        for key, value in data.items():
-            if isinstance(value, datetime.date):
-                payload[key] = value.isoformat()
-            else:
-                payload[key] = value
-        
-        response = supabase.table(table_name).insert(payload).execute()
-
-        if response.data:
-            st.success(f"Guardado :)", icon="✅")
-            return response.data
-        elif hasattr(response, 'error') and response.error:
-            st.error(f"Error al guardar registro en '{table_name}': {response.error.message} (Código: {response.error.code})")
-            return None
-        else:
-            st.error(f"Error desconocido al guardar registro en '{table_name}'.")
-            return None
-    except Exception as e:
-        st.error(f"Error al insertar registro en '{table_name}': {e}")
-        return None
-
-# --- Función para actualizar un registro (Update) ---
-def update_record(table_name, record_id, data, id_column_name='ID'):
-    try:
-        payload = {}
-        for key, value in data.items():
-            if isinstance(value, datetime.date):
-                payload[key] = value.isoformat()
-            elif pd.isna(value) and isinstance(value, pd.Timestamp):
-                 payload[key] = None
-            elif pd.isna(value):
-                payload[key] = None
-            elif isinstance(value, (int, float)):
-                if isinstance(value, float) and value.is_integer():
-                    payload[key] = int(value)
-                else:
-                    payload[key] = value
-            else:
-                payload[key] = value
-
-        if not payload:
-            print(f"Advertencia: No hay datos que actualizar para el registro {record_id} en {table_name}.")
-            return None
-        
-        print(f"\n--- Depuración de Supabase Update ---")
-        print(f"Intentando actualizar '{table_name}' con ID '{record_id}'")
-        print(f"Payload final a enviar: {payload}")
-        print(f"Tipos en payload final: {[type(v) for v in payload.values()]}")
-
-        response = supabase.table(table_name).update(payload).eq(id_column_name, record_id).execute()
-
-        # Las líneas de print de la respuesta cruda de Supabase son CRUCIALES. Mantenlas.
-        print(f"Respuesta cruda de Supabase: {response}")
-        if hasattr(response, 'data'):
-            print(f"response.data: {response.data}")
-        if hasattr(response, 'error') and response.error:
-            print(f"response.error: {response.error}")
-
-        # La lógica para determinar el éxito.
-        # Si no hay un error explícito de Supabase, asumimos éxito.
-        if not hasattr(response, 'error') or response.error is None:
-            # Incluso si response.data está vacío, si no hay error explícito, es un éxito.
-            print(f"Supabase: Actualización sin error explícito. Considerado éxito.")
-            return True
-        else:
-            error_message = response.error.message if hasattr(response.error, 'message') else "Mensaje de error no disponible."
-            error_code = response.error.code if hasattr(response.error, 'code') else "Código de error no disponible."
-            st.error(f"Error al actualizar registro en '{table_name}' (ID: {record_id}): {error_message} (Código: {error_code})")
-            print(f"Error de Supabase: {error_message} (Código: {error_code})")
-            return False
-    except Exception as e:
-        st.error(f"Excepción al actualizar registro en '{table_name}' (ID: {record_id}): {e}")
-        print(f"Excepción general en update_record: {e}")
-        return False
-
-# --- Función para eliminar un registro (Delete) ---
-def delete_record(table_name, record_id, id_column_name='ID'):
-    try:
-        response = supabase.table(table_name).delete().eq(id_column_name, record_id).execute()
-        
-        if response.data:
-            st.success(f"Borrado :)", icon="✅")
-            return response.data
-        elif hasattr(response, 'error') and response.error:
-            st.error(f"Error al eliminar registro de '{table_name}': {response.error.message} (Código: {response.error.code})")
-            return None
-        else:
-            st.error(f"Error desconocido al eliminar registro de '{table_name}'.")
-            return None
-    except Exception as e:
-        st.error(f"Error al eliminar registro de '{table_name}': {e}")
-        return None
-
-# --- Función para retornar Max/Min ID ---
-def returnMaxMinID(df):
-    if 'ID' in df.columns and not df.empty:
-        max_id = df['ID'].max()
-        min_id = df['ID'].min()
-        return int(max_id), int(min_id)
-    else:
-        return 0, 0
-
-# --- Función para unir órdenes (Pedidos, Clientes, Articulos) ---
-def ordersJoin(db_pedidos, db_clientes, db_articulos):
-    if db_pedidos.empty:
+        st.error(f"Error al obtener la tabla '{tableName}': {e}")
         return pd.DataFrame()
 
-    df = db_pedidos.copy()
-
-    # Asegurar que las columnas de ID sean del tipo correcto antes de la unión
-    df['Cliente_id'] = pd.to_numeric(df['Cliente_id'], errors='coerce').fillna(0).astype(int)
-    df['Articulo_id'] = pd.to_numeric(df['Articulo_id'], errors='coerce').fillna(0).astype(int)
-
-    # --- Paso 1: Unir con Clientes ---
-    if not db_clientes.empty and 'ID' in db_clientes.columns:
-        db_clientes['ID'] = pd.to_numeric(db_clientes['ID'], errors='coerce').fillna(0).astype(int)
-        df = pd.merge(
-            df,
-            db_clientes[['ID', 'Nombre']].rename(columns={'ID': 'Cliente_Join_ID'}),
-            left_on='Cliente_id',
-            right_on='Cliente_Join_ID',
-            how='left'
-        )
-        df.rename(columns={'Nombre': 'Cliente'}, inplace=True)
-        df.drop(columns=['Cliente_Join_ID'], inplace=True, errors='ignore')
-
-    # --- Paso 2: Unir con Artículos ---
-    if not db_articulos.empty and 'ID' in db_articulos.columns:
-        db_articulos['ID'] = pd.to_numeric(db_articulos['ID'], errors='coerce').fillna(0).astype(int)
-
-        # Unir y traer las columnas de sugerido
-        df = pd.merge(
-            df,
-            db_articulos[['ID', 'Articulo', 'Coste_Material_Sugerido', 'Coste_Proveedor_Sugerido', 'Importe_Sugerido']].rename(columns={'ID': 'Articulo_Join_ID'}),
-            left_on='Articulo_id',
-            right_on='Articulo_Join_ID',
-            how='left'
-        )
-        df.rename(columns={'Articulo': 'Articulo_Nombre_Ref'}, inplace=True) # Renombrar temporalmente para evitar conflicto con 'Articulo' si ya existiera en df
-
-        # --- ¡CAMBIO CLAVE AQUÍ! SOBREESCRIBIR LAS COLUMNAS DEL PEDIDO ---
-        # Si el Articulo_id no es nulo, sobrescribimos los valores del pedido
-        # con los valores sugeridos del artículo.
-        # Usa .loc para una asignación segura y evitar SettingWithCopyWarning
-        mask_has_article = df['Articulo_id'].notna() & (df['Articulo_id'] != 0)
-
-        # Sobrescribir 'Coste_material' del pedido con 'Coste_Material_Sugerido' del artículo
-        df.loc[mask_has_article, 'Coste_material'] = df.loc[mask_has_article, 'Coste_Material_Sugerido']
-
-        # Sobrescribir 'Coste_proveedor' del pedido con 'Coste_Proveedor_Sugerido' del artículo
-        df.loc[mask_has_article, 'Coste_proveedor'] = df.loc[mask_has_article, 'Coste_Proveedor_Sugerido']
-
-        # Sobrescribir 'Importe' del pedido con 'Importe_Sugerido' del artículo
-        df.loc[mask_has_article, 'Importe'] = df.loc[mask_has_article, 'Importe_Sugerido']
-
-        # Eliminar las columnas *_Sugerido y la de join del DataFrame final
-        df.drop(columns=['Coste_Material_Sugerido', 'Coste_Proveedor_Sugerido', 'Importe_Sugerido', 'Articulo_Join_ID'],
-                inplace=True, errors='ignore')
-
-        # Si renombraste 'Articulo' a 'Articulo_Nombre_Ref' temporalmente, reestablece el nombre final
-        if 'Articulo_Nombre_Ref' in df.columns:
-            df.rename(columns={'Articulo_Nombre_Ref': 'Articulo'}, inplace=True)
-
-    # --- Selección y Ordenación Final de Columnas ---
-    final_cols = [
-        'ID', # ID del pedido
-        'Entrega_Cliente',
-        'Cliente',
-        'Articulo', # Ahora tiene el nombre del artículo
-        'Descripcion',
-        'Cantidad',
-        'Proveedor',
-        'Coste_material', # Ya sobrescrito con el sugerido
-        'Coste_proveedor', # Ya sobrescrito con el sugerido
-        'Importe', # Ya sobrescrito con el sugerido
-        'Pagado',
-        'Limite',
-        'Entrega_Proveedor',
-        'Recogida_Proveedor',
-        'Recogida_Cliente',
-        'Cliente_id', # Mantener las FKs para edición y referencia interna
-        'Articulo_id'
-    ]
-
-    # Filtrar solo las columnas que realmente existen
-    df = df[[col for col in final_cols if col in df.columns]]
-
+def obtainTableWithNormalized(tableName):
+    """
+    Obtains data from a specified Supabase table and adds normalized columns
+    for 'Articulo' and 'Nombre'.
+    """
+    df = obtainTable(tableName)
+    if not df.empty:
+        if 'Articulo' in df.columns:
+            df['Articulo_Normalized'] = df['Articulo'].apply(normalize_string)
+        if 'Nombre' in df.columns:
+            df['Nombre_Normalized'] = df['Nombre'].apply(normalize_string)
     return df
 
-# --- Función para submitDatasource (Insertar/Validar) ---
-def submitDatasource(newRow, table_name, uniqueColumn=None, restrictedValue=None):
-    # Validaciones previas si uniqueColumn está presente
-    if uniqueColumn and newRow.get(uniqueColumn) is not None and newRow.get(uniqueColumn) != '':
-        try:
-            # Obtener la tabla actual para verificar la unicidad localmente o en Supabase
-            existing_data = obtainTable(table_name)
-            if not existing_data.empty and uniqueColumn in existing_data.columns:
-                # Comprobar si el valor ya existe (insensible a mayúsculas/minúsculas si es texto)
-                if newRow[uniqueColumn] in existing_data[uniqueColumn].values: # Comparación exacta
-                     st.warning(f'El {uniqueColumn.lower()} "{newRow[uniqueColumn]}" ya existe. No puede haber dos {uniqueColumn.lower()}s iguales.', icon="⚠️")
-                     return obtainTable(table_name) # Retorna la tabla actual sin cambios
-        except Exception as e:
-            st.error(f"Error al verificar unicidad en '{table_name}': {e}")
-            return obtainTable(table_name)
-    elif uniqueColumn and (newRow.get(uniqueColumn) is None or newRow.get(uniqueColumn) == ''):
-        st.warning(f'El campo "{uniqueColumn.lower()}" no puede estar vacío.', icon="⚠️")
-        return obtainTable(table_name)
+def returnMaxMinID(df):
+    """Returns the maximum and minimum 'ID' from a DataFrame."""
+    if not df.empty and 'ID' in df.columns:
+        return df['ID'].max(), df['ID'].min()
+    return None, None # Return None if DataFrame is empty or 'ID' column is missing
 
-    # Validación específica para el teléfono (si aplica)
-    # Suponiendo que restrictedValue es el número de teléfono y uniqueColumn es 'Telefono'
-    if uniqueColumn == 'Telefono' and restrictedValue is not None:
-        if len(str(restrictedValue)) != 9:
-            st.warning('El teléfono debe contener nueve dígitos.', icon="⚠️")
-            return obtainTable(table_name)
+def deleteForm(min_id, max_id, tableName):
+    """
+    Creates a Streamlit form for deleting a record by ID with confirmation.
+    """
+    with st.form(key=f'delete-form-{tableName}'):
+        st.subheader(f'Eliminar Registro de {tableName}')
+        
+        # Set default value for ID to the max_id if available, otherwise 1
+        default_delete_id = max_id if max_id is not None else 1
+        
+        id_to_delete = st.number_input(
+            f'ID del {tableName} a eliminar', 
+            min_value=min_id if min_id is not None else 1, 
+            max_value=max_id if max_id is not None else 999999, # A reasonably large upper bound
+            value=default_delete_id,
+            step=1
+        )
+        
+        # Add a confirmation checkbox
+        confirm_delete = st.checkbox(f"Confirmo que deseo eliminar el registro con ID {id_to_delete}")
+        
+        delete_button = st.form_submit_button('Eliminar Registro')
 
-    # Si todas las validaciones pasan, insertar el registro
-    result = insert_record(table_name, newRow)
-    if result is not None:
-        time.sleep(1) # Pausa breve para que el usuario vea el mensaje de éxito
-        st.rerun() # Recarga la aplicación para mostrar la tabla actualizada
+        if delete_button:
+            if confirm_delete:
+                if id_to_delete is not None:
+                    if delete_record(tableName, int(id_to_delete)):
+                        st.success(f"Registro ID {id_to_delete} eliminado con éxito.")
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.error(f"Error al eliminar el registro ID {id_to_delete}.")
+                else:
+                    st.warning("Por favor, introduce un ID válido para eliminar.")
+            else:
+                st.warning("Por favor, marca la casilla de confirmación para eliminar el registro.")
+
+def delete_record(tableName, record_id):
+    """
+    Deletes a record from the specified Supabase table by its ID.
+    Returns True on success, False on failure.
+    """
+    try:
+        response = supabase.table(tableName).delete().eq("ID", record_id).execute()
+        # Supabase delete operation returns data if successful, otherwise it's an error
+        if response.data:
+            return True
+        else:
+            st.error(f"No se encontró el registro con ID {record_id} en la tabla {tableName}.")
+            return False
+    except Exception as e:
+        st.error(f"Error al eliminar registro en {tableName}: {e}")
+        return False
+
+def insert_record(tableName, data):
+    """
+    Inserts a new record into the specified Supabase table.
+    Returns the inserted data on success, None on failure.
+    """
+    try:
+        response = supabase.table(tableName).insert(data).execute()
+        if response.data:
+            return response.data
+        else:
+            st.error(f"Error al insertar registro en {tableName}: {response.json()}")
+            return None
+    except Exception as e:
+        st.error(f"Error al insertar registro en {tableName}: {e}")
+        return None
+
+def update_record(tableName, record_id, data):
+    """
+    Updates a record in the specified Supabase table by its ID.
+    Returns True on success, False on failure.
+    """
+    try:
+        # Filter out 'None' values from data to avoid updating columns to NULL unintentionally
+        # Only update columns that actually have a value (not None) in the payload
+        clean_data = {k: v for k, v in data.items() if v is not None}
+        
+        # Special handling for empty strings for date fields, convert them to None
+        for key in ["Entrega_Cliente", "Limite", "Entrega_Proveedor", "Recogida_Proveedor", "Recogida_Cliente"]:
+            if key in clean_data and clean_data[key] == "":
+                clean_data[key] = None
+
+        response = supabase.table(tableName).update(clean_data).eq("ID", record_id).execute()
+        if response.data:
+            return True
+        else:
+            st.error(f"Error al actualizar registro ID {record_id} en {tableName}: {response.json()}")
+            return False
+    except Exception as e:
+        st.error(f"Error al actualizar registro ID {record_id} en {tableName}: {e}")
+        return False
+
+def ordersJoin(df_pedidos, df_clientes, df_articulos):
+    """
+    Performs a join operation between orders, clients, and articles DataFrames.
+    Returns the joined DataFrame.
+    """
+    if df_pedidos.empty:
+        return pd.DataFrame()
+
+    # Ensure IDs are integers for merging
+    if not df_clientes.empty and 'ID' in df_clientes.columns:
+        df_clientes['ID'] = df_clientes['ID'].astype(int)
+    if not df_articulos.empty and 'ID' in df_articulos.columns:
+        df_articulos['ID'] = df_articulos['ID'].astype(int)
     
-    return obtainTable(table_name) # Retornar la tabla actualizada (o la que se tenía antes de la inserción si falló)
-
-# --- Función de Búsqueda ---
-def searchFunction(df, search_params, allowed_columns=None):
-    df_filtered = df.copy()
-
-    # --- CAMBIO CLAVE AQUÍ ---
-    # Filtrar search_params para incluir solo las columnas permitidas si allowed_columns no es None
-    if allowed_columns:
-        search_params_filtered = {k: v for k, v in search_params.items() if k in allowed_columns}
+    # Merge with Clients
+    if not df_clientes.empty:
+        df_joined = pd.merge(df_pedidos, df_clientes[['ID', 'Nombre']], 
+                             left_on='Cliente_id', right_on='ID', 
+                             how='left', suffixes=('', '_Cliente'))
+        df_joined = df_joined.rename(columns={'Nombre': 'Cliente'})
+        df_joined = df_joined.drop(columns=['ID_Cliente']) # Drop the redundant ID column from merge
     else:
-        search_params_filtered = search_params
-    # --- FIN CAMBIO CLAVE ---
+        df_joined = df_pedidos.copy()
+        df_joined['Cliente'] = None # Add column even if no data
 
-    for col, value in search_params_filtered.items():
-        if pd.isna(value) or str(value).strip() == '': # Ignorar valores nulos o cadenas vacías/solo espacios
+    # Merge with Articulos
+    if not df_articulos.empty:
+        df_joined = pd.merge(df_joined, df_articulos[['ID', 'Articulo']], 
+                             left_on='Articulo_id', right_on='ID', 
+                             how='left', suffixes=('', '_Articulo'))
+        df_joined = df_joined.rename(columns={'Articulo_Articulo': 'Articulo'})
+        df_joined = df_joined.drop(columns=['ID_Articulo']) # Drop the redundant ID column from merge
+    else:
+        df_joined['Articulo'] = None # Add column even if no data
+
+    # Reorder columns to place Cliente and Articulo closer to ID
+    # Ensure all expected columns are present before reordering
+    desired_order = ['ID', 'Cliente', 'Articulo', 'Entrega_Cliente', 'Descripcion', 'Cantidad', 
+                     'Proveedor', 'Pagado', 'Limite', 'Coste_Material', 'Coste_Proveedor', 'Importe',
+                     'Entrega_Proveedor', 'Recogida_Proveedor', 'Recogida_Cliente']
+    
+    # Filter desired_order to only include columns actually present in df_joined
+    final_columns = [col for col in desired_order if col in df_joined.columns]
+    
+    return df_joined[final_columns]
+
+def autocomplete_text_input(label, initial_value, options, key):
+    # Usamos un text_input normal.
+    # Las sugerencias se mostrarán dinámicamente o se usarán para autocompletar el valor.
+    
+    # Obtener el valor actual del text_input.
+    current_input_value = st.text_input(label, value=initial_value, key=f"{key}_input")
+
+    # Filtrar las opciones basadas en lo que el usuario está escribiendo.
+    # Mostrar las sugerencias debajo del campo de texto (opcional, para guiar al usuario).
+    filtered_options = [opt for opt in options if current_input_value.lower() in opt.lower()]
+    
+    # Podrías mostrar las sugerencias de alguna manera, por ejemplo, como texto informativo
+    # o como una lista simple (no interactiva para evitar conflictos de botones).
+    if current_input_value and filtered_options and current_input_value.lower() not in [opt.lower() for opt in filtered_options]:
+        st.write(f"Sugerencias: {', '.join(filtered_options[:5])}...") # Muestra las primeras 5 sugerencias
+
+    # El valor retornado es simplemente el valor del text_input.
+    # La validación de si es una opción válida se hará al procesar el formulario.
+    return current_input_value
+
+def searchFunction(df, search_params):
+    """
+    Filters a DataFrame based on search parameters.
+    It expects search_params to be a dictionary where keys are column names
+    and values are the search strings.
+    Normalization is applied to string comparisons. Date comparisons are direct.
+    
+    Args:
+        df (pd.DataFrame): The DataFrame to filter.
+        search_params (dict): Dictionary of column_name: search_value pairs.
+                              Values can be strings (for text search) or datetime.date objects.
+    Returns:
+        pd.DataFrame: The filtered DataFrame.
+    """
+    filtered_df = df.copy()
+
+    if filtered_df.empty:
+        return pd.DataFrame()
+
+    for column, search_value in search_params.items():
+        if search_value is None or (isinstance(search_value, str) and search_value.strip() == ""):
             continue
 
-        # Convertir el valor a string para una búsqueda flexible
-        search_value_str = str(value).strip().lower()
-
-        if col in df_filtered.columns:
-            # Para columnas de texto, usa contains (ignorando mayúsculas/minúsculas)
-            if df_filtered[col].dtype == 'object': # Típicamente el dtype para strings
-                df_filtered = df_filtered[
-                    df_filtered[col].astype(str).str.contains(search_value_str, case=False, na=False)
-                ]
-            # Si tienes columnas numéricas o de fecha que también quieres buscar,
-            # tendrías que añadir lógica específica aquí (ej. rangos para números/fechas).
-            # Para una búsqueda simple por "coincidencia de texto" en números, puedes hacer:
-            elif pd.api.types.is_numeric_dtype(df_filtered[col]):
-                df_filtered = df_filtered[
-                    df_filtered[col].astype(str).str.contains(search_value_str, case=False, na=False)
-                ]
-            else: # Para otros tipos (fechas, booleanos, etc.), si la conversión a string tiene sentido
-                 df_filtered = df_filtered[
-                    df_filtered[col].astype(str).str.contains(search_value_str, case=False, na=False)
-                ]
-        else:
-            print(f"Advertencia: Columna '{col}' no encontrada en el DataFrame para la búsqueda.")
-
-    return df_filtered
-
-# --- Función para borrar filas (deleteRow) ---
-def deleteRow(table_name, row_id):
-    check_unique = False 
-
-    if table_name in ('Articulos', 'Clientes'):
-        db_pedidos = obtainTable('Pedidos')
+        if column in filtered_df.columns:
+            # Handle date columns
+            if isinstance(search_value, datetime.date):
+                # Ensure the column is datetime.date type for direct comparison
+                if not pd.api.types.is_datetime64_any_dtype(filtered_df[column]):
+                    filtered_df[column] = pd.to_datetime(filtered_df[column], errors='coerce').dt.date
+                
+                # Filter rows where the date matches exactly
+                filtered_df = filtered_df[filtered_df[column] == search_value].copy()
+            
+            # Handle string columns (text search)
+            elif pd.api.types.is_string_dtype(filtered_df[column]):
+                normalized_search_value = normalize_string(search_value)
+                filtered_df = filtered_df[
+                    filtered_df[column].astype(str).apply(normalize_string).str.contains(normalized_search_value, na=False)
+                ].copy()
+            
+            # Handle selectbox columns which might have exact string matches but are technically objects
+            elif pd.api.types.is_object_dtype(filtered_df[column]) and isinstance(search_value, str):
+                # For columns like 'Proveedor' or 'Pagado', an exact match is usually expected if a value is selected
+                # But to be safe for partial text search, we can use contains with normalization
+                normalized_search_value = normalize_string(search_value)
+                filtered_df = filtered_df[
+                    filtered_df[column].astype(str).apply(normalize_string).str.contains(normalized_search_value, na=False)
+                ].copy()
+            
+            # Handle numeric or other types for exact match if value is not string/date
+            else:
+                filtered_df = filtered_df[filtered_df[column] == search_value].copy()
         
-        if table_name == 'Articulos':
-            if not db_pedidos.empty and 'Articulo_id' in db_pedidos.columns and row_id in db_pedidos['Articulo_id'].values:
-                check_unique = True
-        elif table_name == 'Clientes':
-            if not db_pedidos.empty and 'Cliente_id' in db_pedidos.columns and row_id in db_pedidos['Cliente_id'].values:
-                check_unique = True
+        if filtered_df.empty:
+            break # No need to continue if the DataFrame is already empty
 
-        if check_unique:
-            st.warning(f'No se puede eliminar porque hay un pedido asociado a este {table_name[:-1].lower() if table_name.endswith("s") else table_name}.', icon="⚠️")
-            return True # Retorna True si no se pudo eliminar por relación
-
-    # Si no hay relaciones o es la tabla de Pedidos, proceder a eliminar
-    if not check_unique:
-        delete_record(table_name, row_id, 'ID')
-        time.sleep(1) # Pequeña pausa para que el mensaje de éxito/error sea visible
-        st.rerun()
-    return check_unique
-
-# --- deleteForm se mantiene igual ---
-def deleteForm(min_id, max_id, table_name):
-    if "deleteButton" not in st.session_state:
-        st.session_state.deleteButton = False
-
-    def click_button():
-        st.session_state.deleteButton = True
-
-    with st.form(key=f'item-form-delete-{table_name}'):
-        st.write("Formulario para Borrar")
-        col1, col2 = st.columns([4,1])
-        with col1:
-            deleteNumber = st.number_input('ID', min_value=min_id, max_value=max_id, value=max_id if max_id > 0 else 0) # Ajuste para min_value y value
-        with col2:
-            st.form_submit_button('Eliminar registro', on_click=click_button)
-
-    if st.session_state.deleteButton:
-        st.warning('¿Estás segura de que quieres borrar? Esta opción no se puede deshacer', icon="⚠️")
-        confirmationButton = st.button("¡Sí! Estoy segura", key=f"confirm_delete_{table_name}")
-
-        if confirmationButton:
-            st.session_state.deleteButton = False
-            deleteRow(table_name, deleteNumber) # Esta función ya maneja los mensajes y reruns
-
-
-# --- autocomplete_text_input (se mantiene igual) ---
-def autocomplete_text_input(label, default_value, suggestions, key):
-    if suggestions is None:
-        suggestions = []
-    
-    options = [''] + sorted(list(set(suggestions)))
-    
-    try:
-        if default_value in options:
-            index_value = options.index(default_value)
-        elif default_value is not None and str(default_value) in options: 
-            index_value = options.index(str(default_value))
-        elif '' in options:
-            index_value = options.index('')
-        else:
-            index_value = 0 
-    except ValueError:
-        index_value = 0 
-
-    selected_value = st.selectbox(label, options=options, index=index_value, key=key)
-    
-    if selected_value == '':
-        return None
-    
-    return selected_value
+    return filtered_df

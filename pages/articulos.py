@@ -3,75 +3,73 @@ import functions as f
 import forms
 import pandas as pd
 import time
-#title
+
+
+# Configuración de la página
 st.set_page_config(layout="wide",
-                       page_title='Articulos',
-                       page_icon='📦')
-st.markdown("# Articulos 📦")
-st.sidebar.markdown("# Articulos 📦")
+                         page_title='Articulos',
+                         page_icon='📚')
+st.markdown("# Artículos 📚")
+st.sidebar.markdown("# Artículos 📚")
 
-# Cargar la base de datos de Artículos
-db_articulos = f.obtainTable('Articulos')
+# Cargar la base de datos (Articulos)
+# Usamos st.session_state para almacenar db_articulos una vez para evitar recargas constantes
+if 'db_articulos' not in st.session_state:
+    st.session_state.db_articulos = f.obtainTable('Articulos')
 
-# --- SECCIÓN DE BÚSQUEDA (CENTRADO Y MÁS GRANDE) ---
+# df_display será el DataFrame que se mostrará.
+# Por defecto, muestra toda la tabla al inicio o después de un reseteo.
+if 'df_display_articulos' not in st.session_state:
+    st.session_state.df_display_articulos = st.session_state.db_articulos.copy()
 
-# Usar un contenedor para el formulario centrado
-st.markdown("<h3 style='text-align: center;'>Buscar Artículos</h3>", unsafe_allow_html=True)
+# --- FORMULARIO DE BÚSQUEDA ---
+st.subheader('Buscar Artículos')
+# Instanciamos ItemForm solo para búsqueda
+formSearch = forms.ItemForm('search', 'Formulario de Búsqueda de Artículos', 'Buscar Artículo')
 
-# Un truco para centrar y dar más "ancho" aparente al formulario
-# Usamos columnas vacías a los lados. Ajusta el 1 y el 3 para el ancho.
-col_left_spacer, col_form, col_right_spacer = st.columns([1, 3, 1])
-
-with col_form:
-    # Crear una instancia del ItemForm en modo 'search'
-    formSearch = forms.ItemForm('search', '', 'Buscar') # El título del formulario ya lo pusimos con el h3
-
-    # Inicializar df_display con la tabla completa por defecto
-    df_display = db_articulos.copy()
-    
-    # Lógica para manejar el botón de búsqueda
-    if formSearch.Button:
-        # Recuperar los valores de búsqueda de session_state
-        search_params = {
-            'Articulo': st.session_state.get('item_search_articulo_value', ''),
-            'Descripcion': st.session_state.get('item_search_descripcion_value', '')
-        }
-        
-        # Filtrar el DataFrame basado en los parámetros de búsqueda
-        df_display = f.searchFunction(db_articulos.copy(), search_params, allowed_columns=['Articulo', 'Descripcion'])
-        
-        if df_display.empty:
-            st.info("No se encontraron artículos con esos criterios de búsqueda.")
-    
-    # Lógica para manejar el botón de reset de búsqueda
-    if formSearch.ButtonReset:
-        # Limpiar los valores de búsqueda en session_state
-        st.session_state[f'item_search_articulo_value'] = ''
-        st.session_state[f'item_search_descripcion_value'] = ''
-        st.rerun() # Recargar la página para limpiar los campos y mostrar la tabla completa
-
-
-# --- SECCIÓN DE VISUALIZACIÓN DE DATOS (CATÁLOGO COMPLETO O RESULTADOS DE BÚSQUEDA) ---
-
-st.markdown("---") # Una línea divisoria para separar el formulario de la tabla
-st.subheader('Catálogo de Artículos')
-
-if not df_display.empty: # Usamos df_display que ya contiene los resultados de la búsqueda o el catálogo completo
-    column_config = {
-        "ID": st.column_config.NumberColumn("ID", disabled=True),
-        "Articulo": st.column_config.TextColumn("Artículo"),
-        "Descripcion": st.column_config.TextColumn("Descripción"),
-        "Coste_Material_Sugerido": st.column_config.NumberColumn("Coste Material Sugerido", format="%.2f", step=0.01),
-        "Coste_Proveedor_Sugerido": st.column_config.NumberColumn("Coste Proveedor Sugerido", format="%.2f", step=0.01),
-        "Importe_Sugerido": st.column_config.NumberColumn("Importe Sugerido", format="%.2f", step=0.01),
+# Lógica para manejar el botón de búsqueda
+if formSearch.Button:
+    # Construir el diccionario de parámetros de búsqueda usando los valores del formulario
+    # Los valores de formSearch.item y formSearch.desc ya reflejan el estado actual de los inputs
+    search_params = {
+        'Articulo': formSearch.item,
+        'Descripcion': formSearch.desc,
     }
     
-    # Usar st.dataframe para una vista de solo lectura
-    st.dataframe(df_display, use_container_width=True, hide_index=True, column_config=column_config)
+    # Aplicar la función de búsqueda sobre una copia del DataFrame original completo
+    st.session_state.df_display_articulos = f.searchFunction(st.session_state.db_articulos.copy(), search_params)
+
+    if st.session_state.df_display_articulos.empty:
+        st.info("No se encontraron artículos con esos criterios de búsqueda.")
+
+# Lógica para manejar el botón de reset del formulario de búsqueda
+if formSearch.ButtonReset:
+    # Al presionar el botón de reset, limpia los campos del formulario de búsqueda
+    # y reinicia la tabla a su estado original (todos los artículos).
+    st.session_state.df_display_articulos = st.session_state.db_articulos.copy()
+    
+    # Un st.rerun() ya está dentro de forms.py cuando se presiona el ButtonReset,
+    # pero si queremos asegurar que la tabla se refresque con todos los datos aquí,
+    # podríamos incluirlo, aunque el de forms.py ya debería bastar.
+    # st.rerun() # Descomentar si el rerun en forms.py no refresca la tabla lo suficiente
+
+st.markdown("---")
+
+## **Visualización de Datos**
+
+st.subheader('Resultados de Artículos')
+
+if not st.session_state.df_display_articulos.empty:
+    column_config = {
+        "ID": st.column_config.NumberColumn("ID del Artículo", disabled=True),
+        "Articulo": st.column_config.TextColumn("Artículo"),
+        "Descripcion": st.column_config.TextColumn("Descripción"),
+        "Coste_Material_Sugerido": st.column_config.NumberColumn("Coste Material", format="%.2f", disabled=True),
+        "Coste_Proveedor_Sugerido": st.column_config.NumberColumn("Coste Proveedor", format="%.2f", disabled=True),
+        "Importe_Sugerido": st.column_config.NumberColumn("Importe", format="%.2f", disabled=True),
+    }
+    
+    # Mostramos la tabla, ahora con todos los campos deshabilitados para edición
+    st.dataframe(st.session_state.df_display_articulos, column_config=column_config, hide_index=True)
 else:
-    # Este mensaje solo se mostrará si df_display está vacío después de una búsqueda
-    # O si db_articulos está vacío inicialmente (lo cual ya maneja la línea anterior)
-    if formSearch.Button: # Solo muestra el "No hay artículos" si se hizo una búsqueda y no se encontró nada
-        pass # El info de arriba ya lo manejará
-    else: # Si db_articulos estaba vacío desde el principio
-        st.info("No hay artículos para mostrar en el catálogo.")
+    st.info("No hay artículos para mostrar con los criterios actuales.")
