@@ -2,7 +2,7 @@ import streamlit as st
 import functions as f
 import forms
 import pandas as pd
-
+import time
 #title
 st.set_page_config(layout="wide",
                        page_title='Articulos',
@@ -10,46 +10,68 @@ st.set_page_config(layout="wide",
 st.markdown("# Articulos 📦")
 st.sidebar.markdown("# Articulos 📦")
 
-#table calculations
-db = f.obtainTable('Articulos')
-max_id, min_id = f.returnMaxMinID(db)
+# Cargar la base de datos de Artículos
+db_articulos = f.obtainTable('Articulos')
 
-#column formats
-col1, col2 = st.columns(2)
+# --- SECCIÓN DE BÚSQUEDA (CENTRADO Y MÁS GRANDE) ---
 
-#form submit display
-with col1:
-    formSubmit = forms.ItemForm('submit', 'Formulario para Insertar','Guardar registro')
+# Usar un contenedor para el formulario centrado
+st.markdown("<h3 style='text-align: center;'>Buscar Artículos</h3>", unsafe_allow_html=True)
 
-if formSubmit.Button:
+# Un truco para centrar y dar más "ancho" aparente al formulario
+# Usamos columnas vacías a los lados. Ajusta el 1 y el 3 para el ancho.
+col_left_spacer, col_form, col_right_spacer = st.columns([1, 3, 1])
 
-    # new datasource
-    new_article_data = {
-        'Articulo': formSubmit.item,
-        'Descripcion': formSubmit.desc, # Asegúrate que tu columna en Supabase es 'Descripcion'
-        'Coste_Sugerido': formSubmit.cost, # Asegúrate que tu columna en Supabase es 'Coste_Sugerido'
-        'Precio_Sugerido': formSubmit.price # Asegúrate que tu columna en Supabase es 'Precio_Sugerido'
+with col_form:
+    # Crear una instancia del ItemForm en modo 'search'
+    formSearch = forms.ItemForm('search', '', 'Buscar') # El título del formulario ya lo pusimos con el h3
+
+    # Inicializar df_display con la tabla completa por defecto
+    df_display = db_articulos.copy()
+    
+    # Lógica para manejar el botón de búsqueda
+    if formSearch.Button:
+        # Recuperar los valores de búsqueda de session_state
+        search_params = {
+            'Articulo': st.session_state.get('item_search_articulo_value', ''),
+            'Descripcion': st.session_state.get('item_search_descripcion_value', '')
+        }
+        
+        # Filtrar el DataFrame basado en los parámetros de búsqueda
+        df_display = f.searchFunction(db_articulos.copy(), search_params, allowed_columns=['Articulo', 'Descripcion'])
+        
+        if df_display.empty:
+            st.info("No se encontraron artículos con esos criterios de búsqueda.")
+    
+    # Lógica para manejar el botón de reset de búsqueda
+    if formSearch.ButtonReset:
+        # Limpiar los valores de búsqueda en session_state
+        st.session_state[f'item_search_articulo_value'] = ''
+        st.session_state[f'item_search_descripcion_value'] = ''
+        st.rerun() # Recargar la página para limpiar los campos y mostrar la tabla completa
+
+
+# --- SECCIÓN DE VISUALIZACIÓN DE DATOS (CATÁLOGO COMPLETO O RESULTADOS DE BÚSQUEDA) ---
+
+st.markdown("---") # Una línea divisoria para separar el formulario de la tabla
+st.subheader('Catálogo de Artículos')
+
+if not df_display.empty: # Usamos df_display que ya contiene los resultados de la búsqueda o el catálogo completo
+    column_config = {
+        "ID": st.column_config.NumberColumn("ID", disabled=True),
+        "Articulo": st.column_config.TextColumn("Artículo"),
+        "Descripcion": st.column_config.TextColumn("Descripción"),
+        "Coste_Material_Sugerido": st.column_config.NumberColumn("Coste Material Sugerido", format="%.2f", step=0.01),
+        "Coste_Proveedor_Sugerido": st.column_config.NumberColumn("Coste Proveedor Sugerido", format="%.2f", step=0.01),
+        "Importe_Sugerido": st.column_config.NumberColumn("Importe Sugerido", format="%.2f", step=0.01),
     }
-
-    f.submitDatasource(new_article_data, 'Articulos', uniqueColumn='Articulo')
-
-# form search display
-with col2:
-    formSearch = forms.ItemForm('search','Formulario para Buscar','Buscar registro')
-
-# form search filter
-if formSearch.Button:
-    db = f.searchFunction(db, formSearch, "Articulo", "Descripcion") # Asegúrate que es "Descripcion" en tu DB
-elif formSearch.ButtonReset: # Manejar el botón de reset
-    db = f.obtainTable('Articulos') # Recargar la tabla original
-
-
-#table display
-f.displayTable(db, 'ID')
-
-# --- Formulario para Eliminar Artículos ---
-# Volver a calcular max_id/min_id por si se insertó/eliminó algo
-db_for_delete_form = f.obtainTable('Articulos') # Opcional, para asegurar IDs actualizados
-max_id, min_id = f.returnMaxMinID(db_for_delete_form)
-f.deleteForm(min_id, max_id, 'Articulos') # Pasa el nombre de la tabla de Supabase
-
+    
+    # Usar st.dataframe para una vista de solo lectura
+    st.dataframe(df_display, use_container_width=True, hide_index=True, column_config=column_config)
+else:
+    # Este mensaje solo se mostrará si df_display está vacío después de una búsqueda
+    # O si db_articulos está vacío inicialmente (lo cual ya maneja la línea anterior)
+    if formSearch.Button: # Solo muestra el "No hay artículos" si se hizo una búsqueda y no se encontró nada
+        pass # El info de arriba ya lo manejará
+    else: # Si db_articulos estaba vacío desde el principio
+        st.info("No hay artículos para mostrar en el catálogo.")

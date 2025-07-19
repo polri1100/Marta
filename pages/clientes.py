@@ -2,6 +2,7 @@ import streamlit as st
 import functions as f
 import forms
 import pandas as pd
+import time
 
 
 #title
@@ -11,119 +12,128 @@ st.set_page_config(layout="wide",
 st.markdown("# Clientes 👨‍🦰👩‍🦰")
 st.sidebar.markdown("# Clientes 👨‍🦰👩‍🦰")
 
-#table calculations
+# Load database (Clientes)
 db_clientes = f.obtainTable('Clientes')
-max_id, min_id = f.returnMaxMinID(db_clientes)
 
-#table types 
-# phone_nos = db.Telefono.astype(str).replace('^(\d{3})(\d{2})(\d{2})(\d{2})$', r'\1 \2 \3 \4')
-# db.Telefono = phone_nos.where(db.Telefono.astype(str).str.contains('^\d{9}$'))
+# table calculations
+max_id, min_id = f.returnMaxMinID(db_clientes) # Asumiendo que esta función ya es correcta
 
-#column formats
-col1, col2 = st.columns(2)
+# --- SECCIÓN DE FORMULARIOS EN COLUMNAS ---
+# Crear dos columnas para los formularios
+col_insert, col_search = st.columns(2)
 
-# form submit display
-with col1:
-    formSubmit = forms.CustomerForm('submit', 'Formulario para Insertar','Guardar registro')
+# --- FORMULARIO DE INSERCIÓN (En la primera columna) ---
+with col_insert:
+    st.subheader('Nuevo Cliente')
+    formSubmit = forms.CustomerForm('submit', 'Formulario para insertar', 'Insertar registro')
 
-#form submit add
-if formSubmit.Button:
-    
-    # new datasource
-    new_row_data = {
-        'Nombre': formSubmit.name,
-        'Descripcion': formSubmit.desc,
-        'Telefono': formSubmit.phone
+    if formSubmit.Button:
+        payload = {
+            'Nombre': formSubmit.name,
+            'Descripcion': formSubmit.desc, # Asegúrate que 'Descripción' es el nombre correcto de la columna en Supabase
+            'Telefono': formSubmit.phone,
+
+        }
+        f.insert_record('Clientes', payload)
+        st.success("Cliente insertado con éxito.")
+        time.sleep(1) # Pequeña pausa para que el usuario vea el mensaje
+        st.rerun()
+
+# --- FORMULARIO DE BÚSQUEDA (En la segunda columna) ---
+with col_search:
+    st.subheader('Buscar Clientes')
+    formSearch = forms.CustomerForm('search', 'Formulario para Buscar', 'Buscar registro')
+
+    # Inicializar df_display con la tabla completa por defecto
+    df_display = db_clientes.copy()
+
+    # Lógica para manejar el botón de búsqueda
+    if formSearch.Button:
+        # Construir el diccionario de búsqueda
+        search_params = {
+            'Nombre': st.session_state.get('customer_search_name_value', ''),
+            'Descripcion': st.session_state.get('customer_search_desc_value', ''), # Asegúrate que esta clave es correcta
+            'Teléfono': st.session_state.get('customer_search_phone_value', ''),
+        }
+        
+        # Pasa el diccionario de búsqueda a searchFunction
+        # Asegúrate de que allowed_columns coincida con los campos que realmente buscas
+        df_display = f.searchFunction(db_clientes.copy(), search_params, allowed_columns=['Nombre', 'Descripcion', 'Telefono'])
+
+        if df_display.empty:
+            st.info("No se encontraron clientes con esos criterios de búsqueda.")
+
+    # Lógica para manejar el botón de reset de búsqueda
+    if formSearch.ButtonReset:
+        # Limpiar los valores de session_state para los campos de búsqueda
+        st.session_state[f'customer_search_name_value'] = ''
+        st.session_state[f'customer_search_desc_value'] = '' # Limpia también la descripción si se usa
+        st.session_state[f'customer_search_phone_value'] = ''
+        st.rerun() # Recargar la página para limpiar los campos y mostrar la tabla completa
+
+# --- FIN DE LA SECCIÓN DE FORMULARIOS EN COLUMNAS ---
+
+st.markdown("---") # Separador visual entre formularios y tabla
+
+# --- VISUALIZACIÓN DE DATOS (CON EDICIÓN) ---
+st.subheader('Datos de Clientes')
+
+# Mostrar el DataFrame, que será el resultado de la búsqueda o el completo por defecto
+if not df_display.empty:
+    column_config = {
+        "ID": st.column_config.NumberColumn("ID del Cliente", disabled=True),
+        "Nombre": st.column_config.TextColumn("Nombre"),
+        "Descripcion": st.column_config.TextColumn("Descripcion"), # Asegúrate de que esta columna exista
+        "Telefono": st.column_config.TextColumn("Telefono"),
+
     }
     
-    f.submitDatasource(new_row_data, 'Clientes', uniqueColumn='Nombre', restrictedValue=formSubmit.phone)
+    # Usar st.data_editor para permitir la edición de clientes
+    edited_db_clientes = st.data_editor(df_display, key='clientes_data_editor', column_config=column_config, hide_index=True)
+
+    # Lógica para guardar cambios editados
+    if st.session_state['clientes_data_editor']['edited_rows']:
+        st.info("Detectados cambios en el editor de datos. Presiona 'Guardar Cambios' para actualizar.")
+        if st.button('Guardar Cambios en Clientes', key='save_edited_clientes'):
+            try:
+                changes = st.session_state['clientes_data_editor']['edited_rows']
+                original_df_for_compare = df_display.copy() # Usar df_display aquí, ya que es lo que se editó
+
+                any_update_successful = False
+                total_updated_rows = 0
+
+                for index_in_editor, edited_data in changes.items():
+                    cliente_id_to_update = original_df_for_compare.loc[index_in_editor, 'ID']
+                    update_payload = {}
+                    for col, val in edited_data.items():
+                        if pd.isna(val):
+                            update_payload[col] = None
+                        else:
+                            update_payload[col] = val
+
+                    if update_payload:
+                        result = f.update_record('Clientes', cliente_id_to_update, update_payload)
+                        if result is True:
+                            any_update_successful = True
+                            total_updated_rows += 1
+                        else:
+                            st.warning(f"Error o no se pudo actualizar el registro ID: {cliente_id_to_update}. Consulta el log para más detalles.")
+                
+                if any_update_successful:
+                    st.success(f"{total_updated_rows} registros de clientes actualizados con éxito en la base de datos.", icon="✅")
+                    time.sleep(1)
+                    st.rerun()
+                elif total_updated_rows == 0 and not any_update_successful:
+                    st.info("No se realizaron cambios válidos o no hubo actualizaciones exitosas en los clientes.")
+
+            except Exception as e:
+                st.error(f"Error inesperado durante el proceso de guardar cambios en Clientes: {e}")
+
+else:
+    st.info("No hay clientes para mostrar.")
 
 
-# form search display
-with col2:
-    formSearch = forms.CustomerForm('search','Formulario para Buscar','Buscar registro')
-
-    db_display=db_clientes.copy()
-# form search filter
-if formSearch.Button:
-    db_display = f.searchFunction(db_clientes.copy(), formSearch, "Nombre", "Descripcion", "Telefono")
-
-# Lógica para el botón de reseteo de búsqueda
-if formSearch.ButtonReset: # Verifica si se presionó el botón de reset
-    st.rerun() # Recarga la app para limpiar el formulario de búsqueda y mostrar todos los datos
-
-#table display
-st.subheader("Visualización y Edición de Clientes")
-
-if not db_clientes.empty and 'Telefono' in db_clientes.columns:
-    db_clientes['Telefono'] = db_clientes['Telefono'].astype(str) # Asegurarse que es string para el data_editor
-
-edited_db_clientes = st.data_editor(
-    db_display, # Pasamos el DataFrame que puede estar filtrado
-    hide_index=True,
-    use_container_width=True,
-    key="clientes_data_editor" # Identificador único
-)
-
-# Guardar Cambios del Data Editor
-if st.button("Guardar Cambios en Clientes"):
-    # Re-obtener la tabla original fresca de la DB justo antes de guardar para comparar
-    original_db_clientes_for_comparison = f.obtainTable('Clientes')
-
-    # Convertir 'ID' a string en ambos DFs para evitar problemas de tipo en el merge si hubiera
-    if 'ID' in original_db_clientes_for_comparison.columns:
-        original_db_clientes_for_comparison['ID'] = original_db_clientes_for_comparison['ID'].astype(str)
-    if 'ID' in edited_db_clientes.columns:
-        edited_db_clientes['ID'] = edited_db_clientes['ID'].astype(str)
-
-    # Identificar filas modificadas usando la funcionalidad de st.data_editor si es posible
-    # O bien, una comparación manual más robusta si `st.session_state` no funciona directamente
-    
-    # La forma más robusta: fusionar y encontrar diferencias
-    # Primero, asegurarnos de que ambas tablas tengan el mismo conjunto y orden de columnas
-    cols_to_compare = [col for col in edited_db_clientes.columns if col != 'ID']
-    
-    # Comparar solo las filas con los mismos IDs
-    merged_df = pd.merge(edited_db_clientes, original_db_clientes_for_comparison, on='ID', how='left', suffixes=('_edited', '_original'))
-
-    updated_rows_data = []
-
-    for index, row in merged_df.iterrows():
-        is_changed = False
-        data_for_update = {}
-        
-        # Validar teléfono antes de cualquier operación
-        edited_phone = str(row['Telefono_edited']).strip()
-        if not edited_phone.isdigit() or len(edited_phone) != 9:
-            st.error(f"Error en el cliente con ID {row['ID']}: El número de teléfono '{edited_phone}' debe tener 9 dígitos numéricos.")
-            st.stop() # Detiene la ejecución para que el usuario corrija.
-
-        for col in cols_to_compare:
-            edited_val = row[f'{col}_edited']
-            original_val = row[f'{col}_original']
-            
-            # Convertir a string para una comparación uniforme, especialmente si hay NaN o tipos mixtos
-            if str(edited_val) != str(original_val):
-                is_changed = True
-                data_for_update[col] = edited_val
-        
-        if is_changed:
-            updated_rows_data.append({'ID': row['ID'], 'data': data_for_update})
-
-    if updated_rows_data:
-        for item in updated_rows_data:
-            record_id = item['ID']
-            data_to_update = item['data']
-            
-            if data_to_update: # Asegurarse de que hay algo que actualizar
-                f.update_record('Clientes', record_id, data_to_update, id_column_name='ID')
-        
-        st.success("Cambios guardados exitosamente.")
-        st.rerun()
-    else:
-        st.info("No hay cambios para guardar.")
-
-
-# delete form
-max_id, min_id = f.returnMaxMinID(db_clientes)
+# --- FORMULARIO DE ELIMINACIÓN ---
+st.markdown("---") # Separador visual
+st.subheader('Eliminar Clientes')
 f.deleteForm(min_id, max_id, 'Clientes')
