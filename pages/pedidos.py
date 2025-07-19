@@ -2,7 +2,8 @@ import streamlit as st
 import functions as f
 import forms
 import pandas as pd
-
+import time
+import datetime
 #Define Variables
 # if 'payedToggle' not in st.session_state:
 #     st.session_state.payedToggle = False
@@ -19,165 +20,188 @@ db_pedidos = f.obtainTable('Pedidos')
 db_articulos = f.obtainTable('Articulos')
 db_clientes = f.obtainTable('Clientes')
 
-#Join Databases
+# Join Databases
 db_joined = f.ordersJoin(db_pedidos, db_clientes, db_articulos)
-#table calculations
+
+if 'Cliente_id' in db_joined.columns:
+    db_joined = db_joined.drop(columns=['Cliente_id'])
+if 'Articulo_id' in db_joined.columns:
+    db_joined = db_joined.drop(columns=['Articulo_id'])
+
+# table calculations
 list_items = db_articulos['Articulo'].unique().tolist() if not db_articulos.empty and 'Articulo' in db_articulos.columns else []
 list_customers = db_clientes['Nombre'].unique().tolist() if not db_clientes.empty and 'Nombre' in db_clientes.columns else []
 max_id, min_id = f.returnMaxMinID(db_pedidos)
 
-#column formats
+# Columnas para organizar la interfaz
 col1, col2 = st.columns((2,1))
-
-# form submit display
+    
+# Formulario de inserción
 with col1:
-    formSubmit = forms.OrderForm('submit', 'Formulario para Insertar','Guardar registro', list_items, list_customers, db_articulos)
+    st.subheader('Nuevo Pedido')
+    # db_articulos se pasa a OrderForm para que pueda acceder a los costes sugeridos.
+    formSubmit = forms.OrderForm('submit', 'Formulario para Insertar', 'Guardar registro', list_items, list_customers, db_articulos)
 
-if formSubmit.Button:
-    # IDs detection: (esto está bien, pero podría fallar si formSubmit.customer/item no se encuentran)
-    # Es buena práctica añadir un try-except o una comprobación.
-    try:
-        customer_id = int(db_clientes.loc[db_clientes['Nombre'] == formSubmit.customer, 'ID'].values[0])
-        item_id = int(db_articulos.loc[db_articulos['Articulo'] == formSubmit.item, 'ID'].values[0])
-    except IndexError:
-        st.error("Error: Cliente o Artículo no encontrado. Por favor, selecciona uno válido de las listas.")
-        st.stop() # Detiene la ejecución para que el usuario corrija
+    if formSubmit.Button:
+        cliente_id = None
+        if st.session_state.customer_selectbox_key and not db_clientes.empty:
+            filtered_cliente = db_clientes[db_clientes['Nombre'] == st.session_state.customer_selectbox_key]
+            if not filtered_cliente.empty:
+                cliente_id = int(filtered_cliente['ID'].iloc[0])
 
-    # new datasource - IMPORTANTE: NO INCLUIR 'ID' SI ES IDENTITY EN SUPABASE
-    new_row_data = {
-        'Cliente_id': customer_id,
-        'Articulo_id': item_id,
-        'Descripcion': formSubmit.desc,
-        # Convertir fechas a formato ISO 8601 string. Supabase lo prefiere para DATE/TIMESTAMP
-        'Fecha_Entrega': formSubmit.deliveryDate.isoformat() if formSubmit.deliveryDate else None,
-        'Cantidad': int(formSubmit.quantity), # Asegurar que es int de Python
-        'Coste': float(formSubmit.cost),     # Asegurar que es float de Python
-        'Precio': float(formSubmit.price),   # Asegurar que es float de Python
-        'Pagado': bool(formSubmit.payed),    # Asegurar que es bool de Python
-        'Fecha_Recogida': formSubmit.pickUpDate.isoformat() if formSubmit.pickUpDate else None
-    }
-    
-    f.submitDatasource(new_row_data, 'Pedidos') 
-    
+        articulo_id = None
+        articulo_coste_material = 0.0
+        articulo_coste_proveedor = 0.0
+        articulo_importe = 0.0
 
-# form search display
+        if st.session_state.item_selectbox_key and not db_articulos.empty:
+            # Asegúrate de que la columna 'Articulo' en db_articulos es del tipo correcto para la comparación
+            filtered_articulo = db_articulos[db_articulos['Articulo'].astype(str) == st.session_state.item_selectbox_key]
+            if not filtered_articulo.empty:
+                articulo_id = int(filtered_articulo['ID'].iloc[0])
+                # Obtener los precios sugeridos directamente del DataFrame de artículos
+                if 'Coste_Material_Sugerido' in filtered_articulo.columns:
+                    articulo_coste_material = float(filtered_articulo['Coste_Material_Sugerido'].iloc[0])
+                if 'Coste_Proveedor_Sugerido' in filtered_articulo.columns:
+                    articulo_coste_proveedor = float(filtered_articulo['Coste_Proveedor_Sugerido'].iloc[0])
+                if 'Importe_Sugerido' in filtered_articulo.columns:
+                    articulo_importe = float(filtered_articulo['Importe_Sugerido'].iloc[0])
+            else:
+                st.warning(f"Artículo '{st.session_state.item_selectbox_key}' no encontrado en la base de datos de artículos. Los costes se establecerán en 0.")
+
+
+        if cliente_id is None:
+            st.error("Por favor, selecciona un cliente válido.")
+        elif articulo_id is None:
+            st.error("Por favor, selecciona un artículo válido.")
+        else:
+            new_order_data = {
+                'Entrega_Cliente': st.session_state.entrega_cliente_input_key,
+                'Cliente_id': cliente_id,
+                'Articulo_id': articulo_id,
+                'Descripcion': st.session_state.descripcion_input_key,
+                'Cantidad': st.session_state.cantidad_input_key,
+                'Proveedor': st.session_state.proveedor_selectbox_key if st.session_state.proveedor_selectbox_key else None,
+                'Pagado': st.session_state.pagado_selectbox_key,
+                'Limite': st.session_state.limite_input_key,
+                'Coste_Material': articulo_coste_material,
+                'Coste_Proveedor': articulo_coste_proveedor,
+                'Importe': articulo_importe,
+                'Entrega_Proveedor': None, # Estos pueden ser None por defecto al crear
+                'Recogida_Proveedor': None,
+                'Recogida_Cliente': None,
+            }
+            
+            response = f.insert_record('Pedidos', new_order_data)
+            if response:
+                st.rerun()
+            
+# Formulario de búsqueda
 with col2:
+    st.subheader('Buscar Pedidos')
     formSearch = forms.OrderForm('search','Formulario para Buscar','Buscar registro')
 
-db_display = db_joined.copy() # Inicializar siempre con la tabla completa
-# form search filter
-if formSearch.Button:
-    db_joined = f.searchFunction(db_joined.copy(), formSearch, "Fecha_Entrega", "Nombre", "Articulo", "Descripcion", "Fecha_Recogida", "Pagado")
+    if formSearch.Button:
+        df_display = f.searchFunction(db_joined.copy(), formSearch)
+        st.dataframe(df_display, use_container_width=True, hide_index=True) # Añadido hide_index=True
 
-# Lógica para el botón de reseteo de búsqueda
-if formSearch.ButtonReset:
-    st.rerun()
+    if formSearch.ButtonReset:
+        # Resetear campos de búsqueda
+        for key in ['order_search_delivery_date', 'order_search_customer', 'order_search_item', 
+                    'order_search_desc', 'order_search_supplier', 'order_search_paid', 'order_search_limit']:
+            if key in st.session_state:
+                st.session_state[key] = None if 'date' in key or 'limite' in key else '' 
+        st.rerun()
 
-st.subheader("Visualización y Edición de Pedidos")
+# Sección de visualización y edición de datos de pedidos
+st.subheader('Datos de Pedidos')
 
 if not db_joined.empty:
-    if 'Pagado' in db_joined.columns:
-        db_joined['Pagado'] = db_joined['Pagado'].astype(bool)
-    for col_date in ['Fecha_Entrega', 'Fecha_Recogida']: # Usa nombres exactos de columnas
-        if col_date in db_joined.columns:
-            db_joined[col_date] = pd.to_datetime(db_joined[col_date], errors='coerce')
+    # Definir columnas para la edición
+    column_config = {
+        "ID": st.column_config.NumberColumn("ID del Pedido", disabled=True),
+        "Cliente": st.column_config.TextColumn("Cliente", disabled=True),
+        "Articulo": st.column_config.TextColumn("Artículo", disabled=True),
+        "Entrega_Cliente": st.column_config.DateColumn("Entrega Cliente", format="DD/MM/YYYY"),
+        "Limite": st.column_config.DateColumn("Límite", format="DD/MM/YYYY"),
+        "Entrega_Proveedor": st.column_config.DateColumn("Entrega Proveedor", format="DD/MM/YYYY"),
+        "Recogida_Proveedor": st.column_config.DateColumn("Recogida Proveedor", format="DD/MM/YYYY"),
+        "Recogida_Cliente": st.column_config.DateColumn("Recogida Cliente", format="DD/MM/YYYY"),
+        "Pagado": st.column_config.SelectboxColumn(
+            "Pagado",
+            options=["No Pagado", "Efectivo", "Tarjeta", "Bizum"],
+            required=True,
+        ),
+        "Proveedor": st.column_config.SelectboxColumn(
+            "Proveedor",
+            options=["", "Alicia", "Dani", "Manuela", "Mari", "Marlen", "Marta"],
+            required=False,
+        ),
+        "Coste_Material": st.column_config.NumberColumn("Coste Material", format="%.2f", step=0.01),
+        "Coste_Proveedor": st.column_config.NumberColumn("Coste Proveedor", format="%.2f", step=0.01),
+        "Importe": st.column_config.NumberColumn("Importe", format="%.2f", step=0.01),
+    }
 
-edited_db_joined = st.data_editor(
-    db_joined, # Le pasamos el DataFrame actual (filtrado o completo)
-    hide_index=True,
-    use_container_width=True,
-    key="pedidos_data_editor" # Un identificador único para este widget
-)
+    edited_db_joined = st.data_editor(db_joined, key='orders_data_editor', column_config=column_config, hide_index=True)
 
-if st.button("Guardar Cambios en Pedidos"):
-    original_db_pedidos = f.obtainTable('Pedidos')
-    
-    if 'ID' in original_db_pedidos.columns:
-        original_db_pedidos['ID'] = original_db_pedidos['ID'].astype(str)
-    if 'ID' in edited_db_joined.columns:
-        edited_db_joined['ID'] = edited_db_joined['ID'].astype(str)
-        
-    # Mapear de nuevo Nombre a Cliente_id y Articulo a Articulo_id si se perdieron
-    if 'Nombre' in edited_db_joined.columns and 'Cliente_id' not in edited_db_joined.columns:
-        name_to_customer_id = db_clientes.set_index('Nombre')['ID'].to_dict()
-        edited_db_joined['Cliente_id'] = edited_db_joined['Nombre'].map(name_to_customer_id)
-    
-    if 'Articulo' in edited_db_joined.columns and 'Articulo_id' not in edited_db_joined.columns:
-        item_to_article_id = db_articulos.set_index('Articulo')['ID'].to_dict()
-        edited_db_joined['Articulo_id'] = edited_db_joined['Articulo'].map(item_to_article_id)
+    if st.session_state['orders_data_editor']['edited_rows']:
+        st.info("Detectados cambios en el editor de datos. Presiona 'Guardar Cambios' para actualizar.")
+        if st.button('Guardar Cambios en Pedidos', key='save_edited_orders'):
+            try:
+                changes = st.session_state['orders_data_editor']['edited_rows']
+                original_df_for_compare = db_joined.copy()
 
-    pedido_cols_for_update = [
-        'ID', 'Cliente_id', 'Articulo_id', 'Descripcion', 'Fecha_Entrega',
-        'Cantidad', 'Coste', 'Precio', 'Pagado', 'Fecha_Recogida'
-    ]
+                any_update_successful = False # Se usa para el mensaje final y el rerun
+                total_updated_rows = 0
 
-    df_pedidos_to_compare = edited_db_joined[pedido_cols_for_update].copy()
-    
-    if 'Pagado' in df_pedidos_to_compare.columns:
-        df_pedidos_to_compare['Pagado'] = df_pedidos_to_compare['Pagado'].astype(bool)
-    for col_date in ['Fecha_Entrega', 'Fecha_Recogida']:
-        if col_date in df_pedidos_to_compare.columns:
-            df_pedidos_to_compare[col_date] = pd.to_datetime(df_pedidos_to_compare[col_date], errors='coerce')
+                for index_in_editor, edited_data in changes.items():
+                    # Obtener el ID del pedido de la fila original (importante para evitar la confusión de IDs)
+                    pedido_id_to_update = original_df_for_compare.loc[index_in_editor, 'ID']
 
-    merged_df = pd.merge(df_pedidos_to_compare, original_db_pedidos, on='ID', how='left', suffixes=('_edited', '_original'))
+                    update_payload = {}
+                    for col, val in edited_data.items():
+                        # Excluir las columnas que NO pertenecen a la tabla Pedidos en Supabase
+                        # Asegúrate de que 'Cliente' y 'Articulo' se excluyen aquí
+                        if col not in ['Cliente', 'Articulo']:
+                            if col in ["Entrega_Cliente", "Limite", "Entrega_Proveedor", "Recogida_Proveedor", "Recogida_Cliente"]:
+                                if isinstance(val, datetime.date):
+                                    update_payload[col] = val.isoformat()
+                                elif pd.isna(val) and isinstance(val, pd.Timestamp):
+                                    update_payload[col] = None
+                                elif pd.isna(val):
+                                    update_payload[col] = None
+                                else:
+                                    update_payload[col] = val
+                            elif col in ['Cantidad']:
+                                update_payload[col] = int(val) if pd.notna(val) else None
+                            elif col in ['Coste_material', 'Coste_proveedor', 'Importe']:
+                                update_payload[col] = float(val) if pd.notna(val) else None
+                            else:
+                                update_payload[col] = val
 
-    updated_rows_data = []
+                    if update_payload: # Solo intentar actualizar si hay datos válidos en el payload
+                        result = f.update_record('Pedidos', pedido_id_to_update, update_payload)
+                        # La función f.update_record ahora devuelve True/False/None
+                        if result is True: # Si update_record devuelve True, fue exitoso
+                            any_update_successful = True
+                            total_updated_rows += 1
+                        else:
+                            st.warning(f"Error o no se pudo actualizar el registro ID: {pedido_id_to_update}. Consulta el log para más detalles.")
 
-    for index, row in merged_df.iterrows():
-        record_id = row['ID']
-        is_changed = False
-        data_for_update = {}
-        
-        for col in pedido_cols_for_update:
-            if col == 'ID':
-                continue
-            
-            edited_val = row.get(f'{col}_edited')
-            original_val = row.get(f'{col}_original')
+                # Aquí está la clave: Asegurarse de que el rerun se ejecute si hay ALGUN cambio exitoso
+                if any_update_successful:
+                    st.success(f"{total_updated_rows} registros de pedidos actualizados con éxito en la base de datos.")
+                    time.sleep(1) # Pequeña pausa para ver el mensaje de éxito
+                    st.rerun() # <-- ¡Esto fuerza la recarga de la página y la tabla!
+                elif not any_update_successful and total_updated_rows == 0: # Si no hubo cambios o ninguno fue exitoso
+                    st.info("No se realizaron cambios válidos o no hubo actualizaciones exitosas en los pedidos.")
 
-            # Manejo especial para booleanos
-            if col == 'Pagado':
-                edited_val = bool(edited_val) if pd.notna(edited_val) else False
-                original_val = bool(original_val) if pd.notna(original_val) else False
-            # Manejo especial para fechas (comparar solo la parte de la fecha si es necesario)
-            elif col in ['Fecha_Entrega', 'Fecha_Recogida']:
-                # Convertir a datetime para una comparación robusta
-                edited_date = pd.to_datetime(edited_val, errors='coerce') if pd.notna(edited_val) else None
-                original_date = pd.to_datetime(original_val, errors='coerce') if pd.notna(original_val) else None
-
-                if (edited_date is None and original_date is not None) or \
-                    (edited_date is not None and original_date is None) or \
-                    (edited_date is not None and original_date is not None and edited_date.date() != original_date.date()):
-                    is_changed = True
-                    data_for_update[col] = edited_date.isoformat() if edited_date else None
-                continue
-            
-            # Asegurar que los valores numéricos son tipos nativos de Python
-            if col in ['Cantidad', 'Coste', 'Precio']:
-                edited_val = int(edited_val) if col == 'Cantidad' and pd.notna(edited_val) else (float(edited_val) if pd.notna(edited_val) else 0)
-                original_val = int(original_val) if col == 'Cantidad' and pd.notna(original_val) else (float(original_val) if pd.notna(original_val) else 0)
-
-
-            if str(edited_val) != str(original_val):
-                is_changed = True
-                data_for_update[col] = edited_val
-        
-        if is_changed:
-            updated_rows_data.append({'ID': record_id, 'data': data_for_update})
-
-    if updated_rows_data:
-        for item in updated_rows_data:
-            record_id = item['ID']
-            data_to_update = item['data']
-            
-            if data_to_update:
-                f.update_record('Pedidos', record_id, data_to_update, id_column_name='ID')
-        
-        st.rerun()
-    else:
-        st.info("No hay cambios para guardar.")
+            except Exception as e:
+                st.error(f"Error inesperado durante el proceso de guardar cambios en Pedidos: {e}")
 
 
-# delete form
-max_id, min_id = f.returnMaxMinID(db_pedidos)
+
+else:
+    st.info("No hay pedidos para mostrar. ¡Agrega uno nuevo usando el formulario de arriba!")
+
 f.deleteForm(min_id, max_id, 'Pedidos')
