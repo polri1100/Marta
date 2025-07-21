@@ -3,3 +3,4 @@ pandas
 pygsheets
 pip
 supabase
+unidecode
