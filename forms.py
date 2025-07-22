@@ -11,7 +11,7 @@ class ItemForm():
             if not db_articulos.empty and 'Articulo' in db_articulos.columns:
                 list_items = (db_articulos['Articulo'].unique()).tolist()
                 list_items.sort()
-                placeholder_items = ['-Seleciona Un Artículo']+ list_items
+                placeholder_items = ['-Selecciona Un Artículo-']+ list_items
         except Exception as e:
             st.warning(f"No se pudieron cargar artículos para sugerencias: {e}")
 
@@ -114,7 +114,9 @@ class CustomerForm():
         try:
             db_clientes = f.obtainTable('Clientes')
             if not db_clientes.empty and 'Nombre' in db_clientes.columns:
-                list_customers = db_clientes['Nombre'].unique().tolist()
+                list_customers = (db_clientes['Nombre'].unique()).tolist()
+                list_customers.sort()
+                placeholder_costumers=['-Seleciona Un Cliente-']+list_customers
         except Exception as e:
             st.warning(f"No se pudieron cargar clientes para sugerencias: {e}")
 
@@ -139,7 +141,7 @@ class CustomerForm():
                 st.session_state.customer_submit_phone_value = ''
 
         # --- Form Definition ---
-        with st.form(key=f'customer-form-{formType}', clear_on_submit=(formType == 'submit' and not st.session_state.get('reset_triggered_for_customer_submit', False))):
+        with st.form(key=f'customer-form-{formType}', clear_on_submit=((formType == 'submit' or formType == 'search') and not st.session_state.get('reset_triggered_for_customer_submit', False))):
             st.write(title)
 
             if formType == 'submit':
@@ -184,7 +186,7 @@ class CustomerForm():
                 # Input fields for search form
                 self.name = st.selectbox( # Usar autocomplete para clientes también
                     'Nombre', 
-                    list_customers, # Lista de todas las opciones para sugerencias
+                    placeholder_costumers, # Lista de todas las opciones para sugerencias
                     key=f'customer_search_name_{formType}'
                 )
                 self.desc = st.text_input(
@@ -266,7 +268,7 @@ class OrderForm():
         # Main form logic
         # Set clear_on_submit to False and handle clearing manually with a reset button
         # This prevents the form from clearing on *every* rerun or when validation fails
-        with st.form(key=f'order-form-{formType}', clear_on_submit=(formType == 'submit' and st.session_state.get('reset_triggered_for_order_submit', False))): # Adjusted clear_on_submit logic
+        with st.form(key=f'order-form-{formType}', clear_on_submit=((formType == 'submit' or formType == 'search') and st.session_state.get('reset_triggered_for_order_submit', False))): # Adjusted clear_on_submit logic
             st.write(title)
             
             if formType == 'submit':

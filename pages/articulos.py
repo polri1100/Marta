@@ -37,7 +37,7 @@ if formSearch.Button:
     }
     
     # Importante: No buscar por el placeholder
-    if search_params['Articulo'] == '-Seleciona Un Artículo': # Usamos la constante del formulario
+    if search_params['Articulo'] == '-Selecciona Un Artículo-': # Usamos la constante del formulario
         del search_params['Articulo'] 
     
         

@@ -93,7 +93,7 @@ def deleteForm(min_id, max_id, tableName):
                 if id_to_delete is not None:
                     if delete_record(tableName, int(id_to_delete)):
                         st.success(f"Registro ID {id_to_delete} eliminado con éxito.")
-                        time.sleep(1)
+                        load_and_refresh_customers_data()
                         st.rerun()
                     else:
                         st.error(f"Error al eliminar el registro ID {id_to_delete}.")
@@ -206,25 +206,6 @@ def ordersJoin(df_pedidos, df_clientes, df_articulos):
     
     return df_joined[final_columns]
 
-def autocomplete_text_input(label, initial_value, options, key):
-    # Usamos un text_input normal.
-    # Las sugerencias se mostrarán dinámicamente o se usarán para autocompletar el valor.
-    
-    # Obtener el valor actual del text_input.
-    current_input_value = st.text_input(label, value=initial_value, key=f"{key}_input")
-
-    # Filtrar las opciones basadas en lo que el usuario está escribiendo.
-    # Mostrar las sugerencias debajo del campo de texto (opcional, para guiar al usuario).
-    filtered_options = [opt for opt in options if current_input_value.lower() in opt.lower()]
-    
-    # Podrías mostrar las sugerencias de alguna manera, por ejemplo, como texto informativo
-    # o como una lista simple (no interactiva para evitar conflictos de botones).
-    if current_input_value and filtered_options and current_input_value.lower() not in [opt.lower() for opt in filtered_options]:
-        st.write(f"Sugerencias: {', '.join(filtered_options[:5])}...") # Muestra las primeras 5 sugerencias
-
-    # El valor retornado es simplemente el valor del text_input.
-    # La validación de si es una opción válida se hará al procesar el formulario.
-    return current_input_value
 
 def searchFunction(df, search_params):
     """
@@ -283,3 +264,35 @@ def searchFunction(df, search_params):
             break # No need to continue if the DataFrame is already empty
 
     return filtered_df
+
+def load_and_refresh_customers_data():
+    st.session_state.db_customers = obtainTable('Clientes')
+    st.session_state.df_display_clientes = st.session_state.db_customers.copy()
+
+def load_and_refresh_data(table_name):
+    """
+    Carga los datos de una tabla específica desde la base de datos
+    y actualiza las variables de session_state correspondientes.
+    
+    table_name: El nombre de la tabla (ej. 'Clientes', 'Articulos', 'Pedidos').
+    """
+    # Define las claves de session_state que corresponden a cada tabla
+    if table_name == 'Clientes':
+        db_key = 'db_customers'
+        display_key = 'df_display_clientes'
+    elif table_name == 'Articulos':
+        db_key = 'db_articulos'
+        display_key = 'df_display_articulos'
+    elif table_name == 'Pedidos':
+        db_key = 'db_orders' # Asumiendo esta clave para Pedidos
+        display_key = 'df_display_pedidos' # Asumiendo esta clave para Pedidos
+    else:
+        st.error(f"Configuración de session_state no definida para la tabla: {table_name}")
+        return
+
+    # Cargar los datos frescos de la base de datos
+    st.session_state[db_key] = obtainTable(table_name)
+    
+    # Actualizar el DataFrame de visualización a una copia del DataFrame completo recién cargado
+    # Esto asegura que la tabla mostrada se resetee a todos los datos después de una operación de CUD
+    st.session_state[display_key] = st.session_state[db_key].copy()
