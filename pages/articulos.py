@@ -25,7 +25,7 @@ if 'df_display_articulos' not in st.session_state:
 # --- FORMULARIO DE BÚSQUEDA ---
 st.subheader('Buscar Artículos')
 # Instanciamos ItemForm solo para búsqueda
-formSearch = forms.ItemForm('search', 'Formulario de Búsqueda de Artículos', 'Buscar Artículo')
+formSearch = forms.ItemForm('search', ' ', 'Buscar Artículo')
 
 # Lógica para manejar el botón de búsqueda
 if formSearch.Button:
@@ -36,6 +36,11 @@ if formSearch.Button:
         'Descripcion': formSearch.desc,
     }
     
+    # Importante: No buscar por el placeholder
+    if search_params['Articulo'] == '-Seleciona Un Artículo': # Usamos la constante del formulario
+        del search_params['Articulo'] 
+    
+        
     # Aplicar la función de búsqueda sobre una copia del DataFrame original completo
     st.session_state.df_display_articulos = f.searchFunction(st.session_state.db_articulos.copy(), search_params)
 
@@ -51,7 +56,7 @@ if formSearch.ButtonReset:
     # Un st.rerun() ya está dentro de forms.py cuando se presiona el ButtonReset,
     # pero si queremos asegurar que la tabla se refresque con todos los datos aquí,
     # podríamos incluirlo, aunque el de forms.py ya debería bastar.
-    # st.rerun() # Descomentar si el rerun en forms.py no refresca la tabla lo suficiente
+    #st.rerun() # Descomentar si el rerun en forms.py no refresca la tabla lo suficiente
 
 st.markdown("---")
 

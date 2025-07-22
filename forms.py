@@ -2,7 +2,6 @@ import streamlit as st
 import functions as f
 import pandas as pd
 import datetime
-
 class ItemForm():
     def __init__(self, formType, title, buttonName):
         list_items = []
@@ -10,9 +9,12 @@ class ItemForm():
         try:
             db_articulos = f.obtainTable('Articulos')
             if not db_articulos.empty and 'Articulo' in db_articulos.columns:
-                list_items = db_articulos['Articulo'].unique().tolist()
+                list_items = (db_articulos['Articulo'].unique()).tolist()
+                list_items.sort()
+                placeholder_items = ['-Seleciona Un Artículo']+ list_items
         except Exception as e:
             st.warning(f"No se pudieron cargar artículos para sugerencias: {e}")
+
 
         # Initialize session state variables for search form inputs
         if formType == 'search':
@@ -25,14 +27,14 @@ class ItemForm():
 
         # For submit form, ensure inputs are cleared on reset or reloaded from session state
         elif formType == 'submit':
-            if 'item_submit_articulo_value' not in st.session_state or st.session_state.get('item_submit_reset_triggered', False):
+            if 'item_submit_articulo_value' not in st.session_state or st.session_state.get('reset_triggered_for_item_submit', False):
                 st.session_state.item_submit_articulo_value = ''
-            if 'item_submit_descripcion_value' not in st.session_state or st.session_state.get('item_submit_reset_triggered', False):
+            if 'item_submit_descripcion_value' not in st.session_state or st.session_state.get('reset_triggered_for_item_submit', False):
                 st.session_state.item_submit_descripcion_value = ''
 
 
         # --- Form Definition ---
-        with st.form(key=f'item-form-{formType}', clear_on_submit=(formType == 'submit' and not st.session_state.get('item_submit_reset_triggered', False))):
+        with st.form(key=f'item-form-{formType}', clear_on_submit=(formType == 'search' and not st.session_state.get('reset_triggered_for_item_submit', False))):
             st.write(title)
 
             if formType == 'submit':
@@ -59,25 +61,22 @@ class ItemForm():
                     if self.ButtonReset:
                         st.session_state.item_submit_articulo_value = ''
                         st.session_state.item_submit_descripcion_value = ''
-                        st.session_state['item_submit_reset_triggered'] = True # Set flag to trigger clear_on_submit next rerun
-                        st.rerun() # Rerun to clear the form fields
+                        st.session_state['reset_triggered_for_item_submit'] = True # Set flag to trigger clear_on_submit next rerun
 
                 # Update session state after form interaction (unless reset was just triggered)
                 # This ensures values persist even if user navigates away and comes back, or if validation fails.
-                if self.Button and not st.session_state.get('item_submit_reset_triggered', False):
-                     st.session_state.item_submit_articulo_value = self.item
-                     st.session_state.item_submit_descripcion_value = self.desc
+                if self.Button and not st.session_state.get('reset_triggered_for_item_submit', False):
+                    pass
                 
                 # Reset the flag after processing for next run
-                st.session_state['item_submit_reset_triggered'] = False
+                st.session_state['reset_triggered_for_item_submit'] = False
 
             else: # formType == 'search'
                 # Input fields for search form
                 # Ahora usamos la versión revisada de f.autocomplete_text_input
-                self.item = f.autocomplete_text_input(
+                self.item = st.selectbox(
                     'Articulo', 
-                    st.session_state.get(f'item_search_articulo_value', ''), 
-                    list_items, # Lista de todas las opciones para sugerencias
+                    placeholder_items, # Lista de todas las opciones para sugerencias
                     key=f'item_search_articulo_{formType}'
                 )
                 self.desc = st.text_input(
@@ -98,7 +97,6 @@ class ItemForm():
                     st.session_state[f'item_search_articulo_value'] = ''
                     st.session_state[f'item_search_descripcion_value'] = ''
                     st.session_state['reset_triggered_for_item_search'] = True
-                    st.rerun() # Rerun to clear search fields and show full table
                 else:
                     # Update session state values only if not a reset, and input has changed
                     # The text_input's value is already in self.item, so we just persist it
@@ -124,8 +122,8 @@ class CustomerForm():
         if formType == 'search':
             if f'customer_search_name_value' not in st.session_state:
                 st.session_state[f'customer_search_name_value'] = ''
-            if f'customer_search_desc_value' not in st.session_state:
-                st.session_state[f'customer_search_desc_value'] = ''
+            if f'customer_search_description_value' not in st.session_state:
+                st.session_state[f'customer_search_description_value'] = ''
             if f'customer_search_phone_value' not in st.session_state:
                 st.session_state[f'customer_search_phone_value'] = ''
             if 'reset_triggered_for_customer_search' not in st.session_state:
@@ -133,15 +131,15 @@ class CustomerForm():
 
         # For submit form, ensure inputs are cleared on reset or reloaded from session state
         elif formType == 'submit':
-            if 'customer_submit_name_value' not in st.session_state or st.session_state.get('customer_submit_reset_triggered', False):
+            if 'customer_submit_name_value' not in st.session_state or st.session_state.get('reset_triggered_for_customer_submit', False):
                 st.session_state.customer_submit_name_value = ''
-            if 'customer_submit_desc_value' not in st.session_state or st.session_state.get('customer_submit_reset_triggered', False):
+            if 'customer_submit_desc_value' not in st.session_state or st.session_state.get('reset_triggered_for_customer_submit', False):
                 st.session_state.customer_submit_desc_value = ''
-            if 'customer_submit_phone_value' not in st.session_state or st.session_state.get('customer_submit_reset_triggered', False):
+            if 'customer_submit_phone_value' not in st.session_state or st.session_state.get('reset_triggered_for_customer_submit', False):
                 st.session_state.customer_submit_phone_value = ''
 
         # --- Form Definition ---
-        with st.form(key=f'customer-form-{formType}', clear_on_submit=(formType == 'submit' and not st.session_state.get('customer_submit_reset_triggered', False))):
+        with st.form(key=f'customer-form-{formType}', clear_on_submit=(formType == 'submit' and not st.session_state.get('reset_triggered_for_customer_submit', False))):
             st.write(title)
 
             if formType == 'submit':
@@ -168,26 +166,24 @@ class CustomerForm():
                     self.Button = st.form_submit_button(buttonName)
                 with col_buttons_submit[1]:
                     self.ButtonReset = st.form_submit_button('Borrar formulario')
+
                     if self.ButtonReset:
                         st.session_state.customer_submit_name_value = ''
                         st.session_state.customer_submit_desc_value = ''
                         st.session_state.customer_submit_phone_value = ''
-                        st.session_state['customer_submit_reset_triggered'] = True
-                        st.rerun()
+                        st.session_state['reset_triggered_for_customer_submit'] = True
 
                 # Update session state after form interaction (unless reset was just triggered)
-                if self.Button and not st.session_state.get('customer_submit_reset_triggered', False):
-                    st.session_state.customer_submit_name_value = self.name
-                    st.session_state.customer_submit_desc_value = self.desc
-                    st.session_state.customer_submit_phone_value = self.phone
-                st.session_state['customer_submit_reset_triggered'] = False
+                if self.Button and not st.session_state.get('reset_triggered_for_customer_submit', False):
+                    pass
+
+                st.session_state['reset_triggered_for_customer_submit'] = False
 
 
             else: # formType == 'search'
                 # Input fields for search form
-                self.name = f.autocomplete_text_input( # Usar autocomplete para clientes también
+                self.name = st.selectbox( # Usar autocomplete para clientes también
                     'Nombre', 
-                    st.session_state.get(f'customer_search_name_value', ''), 
                     list_customers, # Lista de todas las opciones para sugerencias
                     key=f'customer_search_name_{formType}'
                 )
@@ -215,7 +211,6 @@ class CustomerForm():
                     st.session_state[f'customer_search_desc_value'] = ''
                     st.session_state[f'customer_search_phone_value'] = ''
                     st.session_state['reset_triggered_for_customer_search'] = True
-                    st.rerun() # Rerun to clear search fields and show full table
                 else:
                     if not st.session_state.get('reset_triggered_for_customer_search', False):
                         st.session_state[f'customer_search_name_value'] = self.name
@@ -232,44 +227,46 @@ class OrderForm():
         # --- Strict Initialization of Session State Variables for the Insertion (Submit) Form ---
         # Initialize with today's date if not already set, otherwise use existing state
         # NOTA: Estas inicializaciones solo deben ocurrir si la clave NO EXISTE o si se ha activado un RESET
-        if 'submit_entrega_cliente_input_key' not in st.session_state or st.session_state.get('order_submit_reset_triggered', False):
-            st.session_state.submit_entrega_cliente_input_key = datetime.date.today()
+        if formType =='search':
+            # --- Initialization of Session State Variables for the Search Form ---
+            # Estas inicializaciones no necesitan 'reset_triggered' porque se manejan con ButtonReset o con el valor por defecto
+            if f'search_entrega_cliente_value' not in st.session_state: st.session_state.search_entrega_cliente_value = None
+            if f'search_customer_value' not in st.session_state: st.session_state.search_customer_value = ""
+            if f'search_item_value' not in st.session_state: st.session_state.search_item_value = ""
+            if f'search_proveedor_value' not in st.session_state: st.session_state.search_proveedor_value = "" 
+            if f'search_pagado_value' not in st.session_state: st.session_state.search_pagado_value = "" 
+            if f'search_limite_value' not in st.session_state: st.session_state.search_limite_value = None
+            if f'search_entrega_proveedor_value' not in st.session_state: st.session_state.search_entrega_proveedor_value = None
+            if f'search_recogida_proveedor_value' not in st.session_state: st.session_state.search_recogida_proveedor_value = None
+            if f'search_recogida_cliente_value' not in st.session_state: st.session_state.search_recogida_cliente_value = None
+            
+            if 'reset_triggered_for_order_search' not in st.session_state:
+                st.session_state['reset_triggered_for_order_search'] = False
 
-        if 'submit_customer_selectbox_key_input' not in st.session_state or st.session_state.get('order_submit_reset_triggered', False): 
-            st.session_state.submit_customer_selectbox_key_input = "" 
-        if 'submit_item_selectbox_key_input' not in st.session_state or st.session_state.get('order_submit_reset_triggered', False): 
-            st.session_state.submit_item_selectbox_key_input = "" 
-        if 'submit_descripcion_input_key' not in st.session_state or st.session_state.get('order_submit_reset_triggered', False): 
-            st.session_state.submit_descripcion_input_key = "" 
-        if 'submit_cantidad_input_key' not in st.session_state or st.session_state.get('order_submit_reset_triggered', False): 
-            st.session_state.submit_cantidad_input_key = 1.0
-        if 'submit_proveedor_selectbox_key' not in st.session_state or st.session_state.get('order_submit_reset_triggered', False):
-            st.session_state.submit_proveedor_selectbox_key = "" 
-        if 'submit_pagado_selectbox_key' not in st.session_state or st.session_state.get('order_submit_reset_triggered', False):
-            st.session_state.submit_pagado_selectbox_key = "No Pagado" 
-        if 'submit_limite_input_key' not in st.session_state or st.session_state.get('order_submit_reset_triggered', False): # No default to today for 'Limite'
-            st.session_state.submit_limite_input_key = None 
+        elif formType == 'submit':
+            if 'submit_entrega_cliente_input_key' not in st.session_state or st.session_state.get('reset_triggered_for_order_submit', False):
+                st.session_state.submit_entrega_cliente_input_key = datetime.date.today()
 
-        # --- Initialization of Session State Variables for the Search Form ---
-        # Estas inicializaciones no necesitan 'reset_triggered' porque se manejan con ButtonReset o con el valor por defecto
-        if 'search_entrega_cliente_value' not in st.session_state: st.session_state.search_entrega_cliente_value = None
-        if 'search_customer_value' not in st.session_state: st.session_state.search_customer_value = ""
-        if 'search_item_value' not in st.session_state: st.session_state.search_item_value = ""
-        if 'search_proveedor_value' not in st.session_state: st.session_state.search_proveedor_value = "" 
-        if 'search_pagado_value' not in st.session_state: st.session_state.search_pagado_value = "" 
-        if 'search_limite_value' not in st.session_state: st.session_state.search_limite_value = None
-        if 'search_entrega_proveedor_value' not in st.session_state: st.session_state.search_entrega_proveedor_value = None
-        if 'search_recogida_proveedor_value' not in st.session_state: st.session_state.search_recogida_proveedor_value = None
-        if 'search_recogida_cliente_value' not in st.session_state: st.session_state.search_recogida_cliente_value = None
-        
-        # Flag to indicate if reset button was pressed for 'submit' forms (relevant for clear_on_submit logic)
-        if 'order_submit_reset_triggered' not in st.session_state:
-            st.session_state.order_submit_reset_triggered = False
+            if 'submit_customer_selectbox_key_input' not in st.session_state or st.session_state.get('reset_triggered_for_order_submit', False): 
+                st.session_state.submit_customer_selectbox_key_input = "" 
+            if 'submit_item_selectbox_key_input' not in st.session_state or st.session_state.get('reset_triggered_for_order_submit', False): 
+                st.session_state.submit_item_selectbox_key_input = "" 
+            if 'submit_descripcion_input_key' not in st.session_state or st.session_state.get('reset_triggered_for_order_submit', False): 
+                st.session_state.submit_descripcion_input_key = "" 
+            if 'submit_cantidad_input_key' not in st.session_state or st.session_state.get('reset_triggered_for_order_submit', False): 
+                st.session_state.submit_cantidad_input_key = 1.0
+            if 'submit_proveedor_selectbox_key' not in st.session_state or st.session_state.get('reset_triggered_for_order_submit', False):
+                st.session_state.submit_proveedor_selectbox_key = "" 
+            if 'submit_pagado_selectbox_key' not in st.session_state or st.session_state.get('reset_triggered_for_order_submit', False):
+                st.session_state.submit_pagado_selectbox_key = "No Pagado" 
+            if 'submit_limite_input_key' not in st.session_state or st.session_state.get('reset_triggered_for_order_submit', False): # No default to today for 'Limite'
+                st.session_state.submit_limite_input_key = None 
+
 
         # Main form logic
         # Set clear_on_submit to False and handle clearing manually with a reset button
         # This prevents the form from clearing on *every* rerun or when validation fails
-        with st.form(key=f'order-form-{formType}', clear_on_submit=(formType == 'submit' and st.session_state.get('order_submit_reset_triggered', False))): # Adjusted clear_on_submit logic
+        with st.form(key=f'order-form-{formType}', clear_on_submit=(formType == 'submit' and st.session_state.get('reset_triggered_for_order_submit', False))): # Adjusted clear_on_submit logic
             st.write(title)
             
             if formType == 'submit':
@@ -285,17 +282,15 @@ class OrderForm():
                         key='submit_entrega_cliente_input_key' # Clave de session_state para este widget
                     )
 
-                    self.customer = f.autocomplete_text_input(
+                    self.customer = st.selectbox(
                         'Cliente', 
-                        st.session_state.submit_customer_selectbox_key_input, 
                         list_customers, 
-                        'submit_customer_autocomplete_key' 
+                        key='submit_customer_autocomplete_key' 
                     )
-                    self.item = f.autocomplete_text_input(
+                    self.item = st.selectbox(
                         'Articulo', 
-                        st.session_state.submit_item_selectbox_key_input, 
                         list_items, 
-                        'submit_item_autocomplete_key' 
+                        key='submit_item_autocomplete_key' 
                     )
                     
                     self.desc = st.text_input(
@@ -359,104 +354,98 @@ class OrderForm():
                         st.session_state.submit_proveedor_selectbox_key = "" 
                         st.session_state.submit_pagado_selectbox_key = "No Pagado" 
                         st.session_state.submit_limite_input_key = None
-                        st.session_state.order_submit_reset_triggered = True # Set a flag
-                        st.rerun() # Rerun to clear the form fields programmatically
+                        st.session_state['reset_triggered_for_order_submit'] = True # Set a flag
 
                 # Important: Update session state after form submit (if not a reset)
                 # SOLO ASIGNAR LOS VALORES QUE NO ESTÁN VINCULADOS DIRECTAMENTE A session_state MEDIANTE SU CLAVE
-                if self.Button and not st.session_state.get('order_submit_reset_triggered', False):
-                    # self.entregaCliente ya está en st.session_state.submit_entrega_cliente_input_key
-                    # self.customer está en st.session_state.submit_customer_selectbox_key_input
-                    # self.item está en st.session_state.submit_item_selectbox_key_input
-                    # self.desc está en st.session_state.submit_descripcion_input_key
-                    # self.quantity está en st.session_state.submit_cantidad_input_key
-                    # self.supplier está en st.session_state.submit_proveedor_selectbox_key
-                    # self.paid está en st.session_state.submit_pagado_selectbox_key
-                    # self.limit está en st.session_state.submit_limite_input_key
+                if self.Button and not st.session_state.get('reset_triggered_for_order_submit', False):
 
-                    # NO SE NECESITA REASIGNAR ESTOS VALORES si el widget usa la clave directamente
-                    # y si el formulario no se va a limpiar automáticamente.
-                    # Los valores ya estarán disponibles en st.session_state[key] al final de la ejecución.
                     pass 
                 
                 # Reset the flag AFTER processing for next run
                 # La bandera debe resetearse para la próxima ejecución del script
-                st.session_state['order_submit_reset_triggered'] = False
+                st.session_state['reset_triggered_for_order_submit'] = False
 
-            elif formType == 'search':
+            else:
                 proveedor_options = ["", "Alicia", "Dani", "Manuela", "Mari", "Marlen", "Marta"]
                 pagado_options = ["", "No Pagado", "Efectivo", "Tarjeta", "Bizum"]
 
-                # Input fields for search form
-                self.deliveryDate = st.date_input(
-                    'Entrega_Cliente', 
-                    value=st.session_state.search_entrega_cliente_value, 
-                    format="DD/MM/YYYY", 
-                    key='search_entrega_cliente_key'
-                )
-                self.customer = st.text_input(
-                    'Cliente', 
-                    value=st.session_state.search_customer_value, 
-                    key='search_customer_key'
-                )
-                self.item = st.text_input(
-                    'Articulo', 
-                    value=st.session_state.search_item_value, 
-                    key='search_item_key'
-                )
+                col1search,col2search = st.columns(2)
 
-                current_search_supplier_index = 0
-                if st.session_state.search_proveedor_value in proveedor_options:
-                    current_search_supplier_index = proveedor_options.index(st.session_state.search_proveedor_value)
+                with col1search:
+                    # Input fields for search form
+                    self.deliveryDate = st.date_input(
+                        'Entrega_Cliente', 
+                        value=st.session_state.search_entrega_cliente_value, 
+                        format="DD/MM/YYYY", 
+                        key='search_entrega_cliente_key'
+                    )
+                    self.customer = st.text_input(
+                        'Cliente', 
+                        value=st.session_state.search_customer_value, 
+                        key='search_customer_key'
+                    )
+                    self.item = st.text_input(
+                        'Articulo', 
+                        value=st.session_state.search_item_value, 
+                        key='search_item_key'
+                    )
 
-                self.supplier = st.selectbox(
-                    'Proveedor', 
-                    proveedor_options,
-                    index=current_search_supplier_index,
-                    key='search_proveedor_key'
-                )
+                    current_search_supplier_index = 0
+                    if st.session_state.search_proveedor_value in proveedor_options:
+                        current_search_supplier_index = proveedor_options.index(st.session_state.search_proveedor_value)
 
-                current_search_paid_index = 0
-                if st.session_state.search_pagado_value in pagado_options:
-                    current_search_paid_index = pagado_options.index(st.session_state.search_pagado_value)
+                    self.supplier = st.selectbox(
+                        'Proveedor', 
+                        proveedor_options,
+                        index=current_search_supplier_index,
+                        key='search_proveedor_key'
+                    )
+                    current_search_paid_index = 0
+                    if st.session_state.search_pagado_value in pagado_options:
+                        current_search_paid_index = pagado_options.index(st.session_state.search_pagado_value)
 
-                self.paid = st.selectbox(
-                    'Pagado', 
-                    pagado_options,
-                    index=current_search_paid_index,
-                    key='search_pagado_key'
-                )
-                self.limit = st.date_input(
-                    'Limite', 
-                    value=st.session_state.search_limite_value, 
-                    format="DD/MM/YYYY", 
-                    key='search_limite_key'
-                )
-                
-                self.entrega_proveedor = st.date_input(
-                    'Entrega Proveedor', 
-                    value=st.session_state.search_entrega_proveedor_value, 
-                    format="DD/MM/YYYY", 
-                    key='search_entrega_proveedor_key'
-                )
-                self.recogida_proveedor = st.date_input(
-                    'Recogida Proveedor', 
-                    value=st.session_state.search_recogida_proveedor_value, 
-                    format="DD/MM/YYYY", 
-                    key='search_recogida_proveedor_key'
-                )
-                self.recogida_cliente = st.date_input(
-                    'Recogida Cliente', 
-                    value=st.session_state.search_recogida_cliente_value, 
-                    format="DD/MM/YYYY", 
-                    key='search_recogida_cliente_key'
-                )
+                    self.paid = st.selectbox(
+                        'Pagado', 
+                        pagado_options,
+                        index=current_search_paid_index,
+                        key='search_pagado_key'
+                    )
+
+                with col2search:
+
+
+                    self.limit = st.date_input(
+                        'Limite', 
+                        value=st.session_state.search_limite_value, 
+                        format="DD/MM/YYYY", 
+                        key='search_limite_key'
+                    )
+                    
+                    self.entrega_proveedor = st.date_input(
+                        'Entrega Proveedor', 
+                        value=st.session_state.search_entrega_proveedor_value, 
+                        format="DD/MM/YYYY", 
+                        key='search_entrega_proveedor_key'
+                    )
+                    self.recogida_proveedor = st.date_input(
+                        'Recogida Proveedor', 
+                        value=st.session_state.search_recogida_proveedor_value, 
+                        format="DD/MM/YYYY", 
+                        key='search_recogida_proveedor_key'
+                    )
+                    self.recogida_cliente = st.date_input(
+                        'Recogida Cliente', 
+                        value=st.session_state.search_recogida_cliente_value, 
+                        format="DD/MM/YYYY", 
+                        key='search_recogida_cliente_key'
+                    )
 
                 # Buttons for search form
-                col1search, col2search = st.columns(2)
-                with col1search:
+                searchbuttons = st.columns(2)
+                with searchbuttons[0]:
                     self.Button = st.form_submit_button(buttonName) 
-                with col2search:
+                with searchbuttons[1]:
                     self.ButtonReset = st.form_submit_button('Borrar búsqueda')
 
                 # Handle Search Form Session State Updates (moved from outside form)
@@ -470,14 +459,18 @@ class OrderForm():
                     st.session_state.search_entrega_proveedor_value = None
                     st.session_state.search_recogida_proveedor_value = None
                     st.session_state.search_recogida_cliente_value = None
-                    st.rerun() # Rerun to clear fields
-                elif self.Button: # Only update if submit button was pressed and not reset
-                    st.session_state.search_entrega_cliente_value = self.deliveryDate
-                    st.session_state.search_customer_value = self.customer
-                    st.session_state.search_item_value = self.item
-                    st.session_state.search_proveedor_value = self.supplier
-                    st.session_state.search_pagado_value = self.paid
-                    st.session_state.search_limite_value = self.limit
-                    st.session_state.search_entrega_proveedor_value = self.entrega_proveedor
-                    st.session_state.search_recogida_proveedor_value = self.recogida_proveedor
-                    st.session_state.search_recogida_cliente_value = self.recogida_cliente
+                
+                else: # Only update if submit button was pressed and not reset
+
+                    if not st.session_state.get('reset_triggered_for_order_search', False):
+                        st.session_state.search_entrega_cliente_value = self.deliveryDate
+                        st.session_state.search_customer_value = self.customer
+                        st.session_state.search_item_value = self.item
+                        st.session_state.search_proveedor_value = self.supplier
+                        st.session_state.search_pagado_value = self.paid
+                        st.session_state.search_limite_value = self.limit
+                        st.session_state.search_entrega_proveedor_value = self.entrega_proveedor
+                        st.session_state.search_recogida_proveedor_value = self.recogida_proveedor
+                        st.session_state.search_recogida_cliente_value = self.recogida_cliente
+
+                st.session_state['reset_triggered_for_order_search'] = False
