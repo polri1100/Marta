@@ -35,12 +35,16 @@ if 'Articulo_id' in db_joined.columns:
 
 # Table calculations
 list_items = db_articulos_display['Articulo'].unique().tolist() if not db_articulos_display.empty and 'Articulo' in db_articulos_display.columns else []
+list_items.sort()
+placeholder_items = ['-Selecciona Un Artículo-']+list_items
 list_customers = db_clientes_display['Nombre'].unique().tolist() if not db_clientes_display.empty and 'Nombre' in db_clientes_display.columns else []
+list_customers.sort()
+placeholder_customers = ['-Selecciona Un Cliente-']+ list_customers
 max_id, min_id = f.returnMaxMinID(db_pedidos)
 
 # --- Insertion Form ---
 st.subheader('Nuevo Pedido')
-formSubmit = forms.OrderForm('submit', 'Formulario para Insertar Nuevo Pedido', 'Guardar registro', list_items, list_customers)
+formSubmit = forms.OrderForm('submit', 'Formulario para Insertar Nuevo Pedido', 'Guardar registro', placeholder_items, placeholder_customers)
 
 # --- Handle the submit action *outside* the form definition ---
 if formSubmit.Button:
@@ -180,7 +184,7 @@ if not today_orders.empty:
         "Coste_Material": st.column_config.NumberColumn("Coste Material", format="%.2f", step=0.01),
         "Coste_Proveedor": st.column_config.NumberColumn("Coste Proveedor", format="%.2f", step=0.01),
         "Importe": st.column_config.NumberColumn("Importe", format="%.2f", step=0.01),
-        "Descripcion": st.column_config.TextColumn("Descripción"),
+        "Descripcion": st.column_config.TextColumn("Descripcion"),
         "Cantidad": st.column_config.NumberColumn("Cantidad", min_value=1.0, step=1.0),
     }
 

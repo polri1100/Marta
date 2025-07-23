@@ -47,7 +47,7 @@ class ItemForm():
                     key=f'item_submit_articulo_{formType}'
                 )
                 self.desc = st.text_input(
-                    'Descripción', 
+                    'Descripcion', 
                     value=st.session_state.item_submit_descripcion_value, # Link to session state for persistence
                     key=f'item_submit_descripcion_{formType}'
                 )
@@ -66,7 +66,8 @@ class ItemForm():
                 # Update session state after form interaction (unless reset was just triggered)
                 # This ensures values persist even if user navigates away and comes back, or if validation fails.
                 if self.Button and not st.session_state.get('reset_triggered_for_item_submit', False):
-                    pass
+                    pass 
+
                 
                 # Reset the flag after processing for next run
                 st.session_state['reset_triggered_for_item_submit'] = False
@@ -80,7 +81,7 @@ class ItemForm():
                     key=f'item_search_articulo_{formType}'
                 )
                 self.desc = st.text_input(
-                    'Descripción', 
+                    'Descripcion', 
                     key=f'item_search_descripcion_{formType}', 
                     value=st.session_state.get(f'item_search_descripcion_value', '')
                 )
@@ -116,7 +117,7 @@ class CustomerForm():
             if not db_clientes.empty and 'Nombre' in db_clientes.columns:
                 list_customers = (db_clientes['Nombre'].unique()).tolist()
                 list_customers.sort()
-                placeholder_costumers=['-Seleciona Un Cliente-']+list_customers
+                placeholder_costumers=['-Selecciona Un Cliente-']+list_customers
         except Exception as e:
             st.warning(f"No se pudieron cargar clientes para sugerencias: {e}")
 
@@ -135,8 +136,8 @@ class CustomerForm():
         elif formType == 'submit':
             if 'customer_submit_name_value' not in st.session_state or st.session_state.get('reset_triggered_for_customer_submit', False):
                 st.session_state.customer_submit_name_value = ''
-            if 'customer_submit_desc_value' not in st.session_state or st.session_state.get('reset_triggered_for_customer_submit', False):
-                st.session_state.customer_submit_desc_value = ''
+            if 'customer_submit_description_value' not in st.session_state or st.session_state.get('reset_triggered_for_customer_submit', False):
+                st.session_state.customer_submit_description_value = ''
             if 'customer_submit_phone_value' not in st.session_state or st.session_state.get('reset_triggered_for_customer_submit', False):
                 st.session_state.customer_submit_phone_value = ''
 
@@ -151,13 +152,13 @@ class CustomerForm():
                     value=st.session_state.customer_submit_name_value,
                     key=f'customer_submit_name_{formType}'
                 )
-                self.desc = st.text_input(
-                    'Descripción', 
-                    value=st.session_state.customer_submit_desc_value,
-                    key=f'customer_submit_desc_{formType}'
+                self.description = st.text_input(
+                    'Descripcion', 
+                    value=st.session_state.customer_submit_description_value,
+                    key=f'customer_submit_description_{formType}'
                 )
                 self.phone = st.text_input(
-                    'Teléfono', 
+                    'Telefono', 
                     value=st.session_state.customer_submit_phone_value,
                     key=f'customer_submit_phone_{formType}'
                 )
@@ -171,7 +172,7 @@ class CustomerForm():
 
                     if self.ButtonReset:
                         st.session_state.customer_submit_name_value = ''
-                        st.session_state.customer_submit_desc_value = ''
+                        st.session_state.customer_submit_description_value = ''
                         st.session_state.customer_submit_phone_value = ''
                         st.session_state['reset_triggered_for_customer_submit'] = True
 
@@ -189,13 +190,13 @@ class CustomerForm():
                     placeholder_costumers, # Lista de todas las opciones para sugerencias
                     key=f'customer_search_name_{formType}'
                 )
-                self.desc = st.text_input(
-                    'Descripción', 
-                    key=f'customer_search_desc_{formType}',
-                    value=st.session_state.get(f'customer_search_desc_value', '')
+                self.description = st.text_input(
+                    'Descripcion', 
+                    key=f'customer_search_description_{formType}',
+                    value=st.session_state.get(f'customer_search_description_value', '')
                 )
                 self.phone = st.text_input(
-                    'Teléfono',
+                    'Telefono',
                     key=f'customer_search_phone_{formType}',
                     value=st.session_state.get(f'customer_search_phone_value', '')
                 )
@@ -210,13 +211,13 @@ class CustomerForm():
                 # Update session state after search form interaction
                 if self.ButtonReset:
                     st.session_state[f'customer_search_name_value'] = ''
-                    st.session_state[f'customer_search_desc_value'] = ''
+                    st.session_state[f'customer_search_description_value'] = ''
                     st.session_state[f'customer_search_phone_value'] = ''
                     st.session_state['reset_triggered_for_customer_search'] = True
                 else:
                     if not st.session_state.get('reset_triggered_for_customer_search', False):
                         st.session_state[f'customer_search_name_value'] = self.name
-                        st.session_state[f'customer_search_desc_value'] = self.desc
+                        st.session_state[f'customer_search_description_value'] = self.description
                         st.session_state[f'customer_search_phone_value'] = self.phone
                 st.session_state['reset_triggered_for_customer_search'] = False
 
@@ -368,7 +369,7 @@ class OrderForm():
                 # La bandera debe resetearse para la próxima ejecución del script
                 st.session_state['reset_triggered_for_order_submit'] = False
 
-            else:
+            else:   ##SEARCH
                 proveedor_options = ["", "Alicia", "Dani", "Manuela", "Mari", "Marlen", "Marta"]
                 pagado_options = ["", "No Pagado", "Efectivo", "Tarjeta", "Bizum"]
 
@@ -382,14 +383,14 @@ class OrderForm():
                         format="DD/MM/YYYY", 
                         key='search_entrega_cliente_key'
                     )
-                    self.customer = st.text_input(
+                    self.customer = st.selectbox(
                         'Cliente', 
-                        value=st.session_state.search_customer_value, 
+                        list_customers, 
                         key='search_customer_key'
                     )
-                    self.item = st.text_input(
+                    self.item = st.selectbox(
                         'Articulo', 
-                        value=st.session_state.search_item_value, 
+                        list_items, 
                         key='search_item_key'
                     )
 
@@ -464,7 +465,7 @@ class OrderForm():
                 
                 else: # Only update if submit button was pressed and not reset
 
-                    if not st.session_state.get('reset_triggered_for_order_search', False):
+                    #if not st.session_state.get('reset_triggered_for_order_search', False):
                         st.session_state.search_entrega_cliente_value = self.deliveryDate
                         st.session_state.search_customer_value = self.customer
                         st.session_state.search_item_value = self.item

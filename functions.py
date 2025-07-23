@@ -93,7 +93,7 @@ def deleteForm(min_id, max_id, tableName):
                 if id_to_delete is not None:
                     if delete_record(tableName, int(id_to_delete)):
                         st.success(f"Registro ID {id_to_delete} eliminado con éxito.")
-                        load_and_refresh_customers_data()
+                        load_and_refresh_data('Clientes')
                         st.rerun()
                     else:
                         st.error(f"Error al eliminar el registro ID {id_to_delete}.")
@@ -265,9 +265,28 @@ def searchFunction(df, search_params):
 
     return filtered_df
 
-def load_and_refresh_customers_data():
-    st.session_state.db_customers = obtainTable('Clientes')
-    st.session_state.df_display_clientes = st.session_state.db_customers.copy()
+# --- Función para regenerar el DataFrame unido de pedidos ---
+def regenerate_joined_orders_df():
+    """
+    Regenera st.session_state.db_full_orders_joined utilizando los datos más recientes
+    de Pedidos, Clientes y Articulos de session_state.
+    Luego, actualiza st.session_state.df_display_orders con este DataFrame unido completo.
+    """
+    # Asegúrate de que estas claves existan antes de usarlas
+    # Si alguna no existe (ej. al inicio), usa un DataFrame vacío
+    pedidos_df = st.session_state.get('db_orders', pd.DataFrame())
+    clientes_df = st.session_state.get('db_customers', pd.DataFrame())
+    articulos_df = st.session_state.get('db_articulos', pd.DataFrame())
+
+    # Genera el DataFrame unido
+    joined_df = ordersJoin(pedidos_df, clientes_df, articulos_df)
+    
+    # Almacena el DataFrame unido completo en session_state para referencia
+    st.session_state.db_full_orders_joined = joined_df
+    
+    # Y, crucialmente, actualiza el DataFrame que se muestra en la UI para pedidos
+    st.session_state.df_display_orders = joined_df.copy()
+
 
 def load_and_refresh_data(table_name):
     """
@@ -277,22 +296,35 @@ def load_and_refresh_data(table_name):
     table_name: El nombre de la tabla (ej. 'Clientes', 'Articulos', 'Pedidos').
     """
     # Define las claves de session_state que corresponden a cada tabla
+    db_key = None
+    # display_key = None # Ya no necesitamos un display_key separado para Pedidos aquí
+    
     if table_name == 'Clientes':
         db_key = 'db_customers'
-        display_key = 'df_display_clientes'
+        display_key = 'df_display_clientes' # Todavía útil para clientes/artículos
     elif table_name == 'Articulos':
         db_key = 'db_articulos'
-        display_key = 'df_display_articulos'
+        display_key = 'df_display_articulos' # Todavía útil para clientes/artículos
     elif table_name == 'Pedidos':
-        db_key = 'db_orders' # Asumiendo esta clave para Pedidos
-        display_key = 'df_display_pedidos' # Asumiendo esta clave para Pedidos
+        db_key = 'db_orders'
+        # Para Pedidos, df_display_orders siempre se deriva del join, no de db_orders directamente
+        # Por lo tanto, no asignamos display_key aquí para Pedidos.
     else:
         st.error(f"Configuración de session_state no definida para la tabla: {table_name}")
         return
 
-    # Cargar los datos frescos de la base de datos
+    # Cargar los datos frescos de la base de datos para la tabla específica
     st.session_state[db_key] = obtainTable(table_name)
     
-    # Actualizar el DataFrame de visualización a una copia del DataFrame completo recién cargado
-    # Esto asegura que la tabla mostrada se resetee a todos los datos después de una operación de CUD
-    st.session_state[display_key] = st.session_state[db_key].copy()
+    # Después de cargar la tabla, regenera el DataFrame unido de pedidos
+    # Esto es importante porque cualquier cambio en Pedidos, Clientes o Articulos
+    # afecta al DataFrame unido.
+    if 'db_orders' in st.session_state and 'db_customers' in st.session_state and 'db_articulos' in st.session_state:
+        # Solo regenerar si las tres tablas base necesarias para el join ya están en session_state
+        # Esto evita errores al inicio si no todas están cargadas aún.
+        regenerate_joined_orders_df()
+    
+    # Para tablas que no son pedidos y no tienen un 'join' asociado para la visualización,
+    # actualiza su propio DataFrame de visualización
+    if table_name in ['Clientes', 'Articulos']:
+        st.session_state[display_key] = st.session_state[db_key].copy()

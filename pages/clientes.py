@@ -13,7 +13,7 @@ st.sidebar.markdown("# Clientes 👨‍🦰👩‍🦰")
 
 # Load database (Clientes)
 if 'db_customers' not in st.session_state:
-    f.load_and_refresh_customers_data()
+    f.load_and_refresh_data('Clientes')
 
 
 max_id, min_id = f.returnMaxMinID(st.session_state.db_customers)
@@ -28,13 +28,13 @@ with col_insert:
     if formSubmit.Button:
         payload = {
             'Nombre': formSubmit.name,
-            'Descripcion': formSubmit.desc, 
+            'Descripcion': formSubmit.description, 
             'Telefono': formSubmit.phone,
         }
         f.insert_record('Clientes', payload)
         st.success("Cliente insertado con éxito.")
         time.sleep(1)
-        f.load_and_refresh_customers_data()
+        f.load_and_refresh_data('Clientes')
         st.rerun()
 
 # --- FORMULARIO DE BÚSQUEDA (En la segunda columna) ---
@@ -47,18 +47,27 @@ with col_search:
         # Build the search dictionary using values from session_state
         search_params = {
             'Nombre': formSearch.name,
-            'Descripcion': formSearch.desc,
+            'Descripcion': formSearch.description,
             'Telefono': formSearch.phone,
         }
-        
         if search_params['Nombre'] == '-Selecciona Un Cliente-':
             del search_params['Nombre']
+
         # Pass the search dictionary to searchFunction
         # Removed 'allowed_columns' as searchFunction now uses the keys from search_params
-        st.session_state.df_display_clientes = f.searchFunction(st.session_state.db_customers.copy(), search_params)
+        if search_params:
+            filtered_df = f.searchFunction(st.session_state.db_customers.copy(), search_params)
+            st.session_state.df_display_clientes = filtered_df
 
-        if st.session_state.df_display_clientes.empty:
-            st.info("No se encontraron clientes con esos criterios de búsqueda.")
+            if filtered_df.empty:
+                st.warning("No se encontraron pedidos con esos criterios de búsqueda.")
+
+        else:
+
+            # If no search criteria, show all orders
+            st.session_state.df_display_orders = st.session_state.db_customers.copy()
+            st.info("No se ingresaron criterios de búsqueda. Mostrando todos los pedidos.")
+
 
     # Logic to handle reset search button
     if formSearch.ButtonReset:
@@ -112,7 +121,7 @@ if not st.session_state.df_display_clientes.empty:
                 if any_update_successful:
                     st.success(f"{total_updated_rows} registros de clientes actualizados con éxito en la base de datos.", icon="✅")
                     time.sleep(1)
-                    f.load_and_refresh_customers_data()
+                    f.load_and_refresh_data('Clientes')
                     st.rerun()
                 elif total_updated_rows == 0 and not any_update_successful:
                     st.info("No se realizaron cambios válidos o no hubo actualizaciones exitosas en los clientes.")
