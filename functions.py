@@ -93,7 +93,7 @@ def deleteForm(min_id, max_id, tableName):
                 if id_to_delete is not None:
                     if delete_record(tableName, int(id_to_delete)):
                         st.success(f"Registro ID {id_to_delete} eliminado con éxito.")
-                        load_and_refresh_data('Clientes')
+                        load_and_refresh_data(tableName)
                         st.rerun()
                     else:
                         st.error(f"Error al eliminar el registro ID {id_to_delete}.")
@@ -116,7 +116,7 @@ def delete_record(tableName, record_id):
             st.error(f"No se encontró el registro con ID {record_id} en la tabla {tableName}.")
             return False
     except Exception as e:
-        st.error(f"Error al eliminar registro en {tableName}: {e}")
+        st.error(f"Error al eliminar registro en {tableName}: Es posible que el cliente tenga registrado un pedido")
         return False
 
 def insert_record(tableName, data):

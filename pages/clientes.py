@@ -33,7 +33,6 @@ with col_insert:
         }
         f.insert_record('Clientes', payload)
         st.success("Cliente insertado con éxito.")
-        time.sleep(1)
         f.load_and_refresh_data('Clientes')
         st.rerun()
 

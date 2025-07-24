@@ -41,8 +41,7 @@ max_id, min_id = f.returnMaxMinID(db_pedidos)
 # This ensures that after a rerun (e.g., from reset or update),
 # the search results (if any) are preserved, not overwritten by the full table.
 
-if 'df_display_orders' not in st.session_state:
-    st.session_state.df_display_orders = db_joined.copy()
+st.session_state.df_display_orders = db_joined.copy()
 
 # --- Search Form ---
 st.subheader('Formulario de Búsqueda')
@@ -60,7 +59,6 @@ if formSearch.Button:
         'Recogida_Proveedor': st.session_state.search_recogida_proveedor_value,
         'Recogida_Cliente': st.session_state.search_recogida_cliente_value,
     }
-
     if search_params['Cliente'] == '-Selecciona Un Cliente-':
         del search_params["Cliente"]
     if search_params['Articulo'] == '-Selecciona Un Artículo-':
@@ -72,9 +70,13 @@ if formSearch.Button:
         filtered_df = f.searchFunction(db_joined.copy(), clean_search_params)
         st.session_state.df_display_orders = filtered_df
 
+        for k in ['search_entrega_cliente_value', 'search_proveedor_value','search_pagado_value','search_limite_value','search_entrega_proveedor_value','search_recogida_proveedor_value','search_recogida_cliente_value']:
+            if k in st.session_state:
+                del st.session_state[k]
+
+
         if filtered_df.empty:
             st.warning("No se encontraron pedidos con esos criterios de búsqueda.")
-
     else:
 
         # If no search criteria, show all orders
@@ -86,17 +88,6 @@ if formSearch.Button:
         # So no explicit update needed here, just ensure the form rebuilds with these values.
 
 if formSearch.ButtonReset:
-    # Reset the displayed DataFrame to the full table
-    st.session_state.search_entrega_cliente_value = None
-    st.session_state.search_customer_value = ""
-    st.session_state.search_item_value = ""
-    st.session_state.search_proveedor_value = ""
-    st.session_state.search_pagado_value = ""
-    st.session_state.search_limite_value = None
-    st.session_state.search_entrega_proveedor_value = None
-    st.session_state.search_recogida_proveedor_value = None
-    st.session_state.search_recogida_cliente_value = None
-    
     # Reset the displayed DataFrame to the full table
     st.session_state.df_display_orders = db_joined.copy()
     #st.rerun()
@@ -121,7 +112,7 @@ if not st.session_state.df_display_orders.empty:
             ),
         "Proveedor": st.column_config.SelectboxColumn(
             "Proveedor",
-            options=["", "Alicia", "Dani", "Manuela", "Mari", "Marlen", "Marta"],
+            options=["", "Alicia", "Dani", "Manuela", "Mari", "Marlen","M.Antonia", "Marta"],
             required=False,
             ),
         "Coste_Material": st.column_config.NumberColumn("Coste Material", format="%.2f", step=0.01),
@@ -195,3 +186,5 @@ st.markdown("---")
 ## Eliminar Pedidos
 
 f.deleteForm(min_id, max_id, 'Pedidos')
+
+st.session_state.df_display_orders = db_joined.copy()

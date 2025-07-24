@@ -51,12 +51,12 @@ if formSubmit.Button:
     # Validaciones antes de insertar:
     # AHORA USAMOS DIRECTAMENTE LOS ATRIBUTOS DE LA INSTANCIA formSubmit
     # QUE CONTIENEN LOS VALORES ENVIADOS EN ESTA EJECUCIÓN
-    if not formSubmit.customer:
+    if formSubmit.customer == '-Selecciona Un CLiente-':
         st.error("Por favor, introduce un nombre de cliente.")
         # No uses st.stop() aquí si quieres que el usuario vea el formulario con los errores
         # y pueda corregir sin perder lo que ya escribió.
         # st.stop()
-    if not formSubmit.item:
+    if formSubmit.item == '-Selecciona Un Articulo-':
         st.error("Por favor, introduce un nombre de artículo.")
         # st.stop()
     if not formSubmit.customer or not formSubmit.item:
@@ -73,7 +73,7 @@ if formSubmit.Button:
             if not filtered_cliente.empty:
                 cliente_id = int(filtered_cliente['ID'].iloc[0])
             else:
-                st.error(f"Cliente '{formSubmit.customer}' (normalizado: '{entered_customer_normalized}') no encontrado. Por favor, selecciona un cliente válido de las sugerencias o créalo primero.")
+                st.error(f"Por favor, selecciona un cliente válido de las sugerencias o créalo primero.")
                 st.stop() # No parar si queremos que el usuario pueda corregir
         else:
             st.error("No se pudo cargar la lista de clientes para validación.")
@@ -98,7 +98,7 @@ if formSubmit.Button:
                 if 'Importe_Sugerido' in filtered_articulo.columns:
                     articulo_importe = float(filtered_articulo['Importe_Sugerido'].iloc[0])
             else:
-                st.warning(f"Artículo '{formSubmit.item}' (normalizado a '{entered_item_normalized}') no encontrado en la base de datos de artículos. Los costes se establecerán en 0.")
+                st.warning(f"Artículo '{formSubmit.item}' no encontrado en la base de datos de artículos. Los costes se establecerán en 0.")
                 # Do not stop here, allow insertion with default costs if article not found, but warn user
         else:
             st.error("No se pudo cargar la lista de artículos para validación. No se puede insertar el pedido.")
@@ -137,9 +137,10 @@ if formSubmit.Button:
             if response:
                 st.success("Pedido insertado con éxito!")
                 # Disparar el reseteo del formulario en la próxima ejecución
-                st.session_state.order_submit_reset_triggered = True 
+                for k in ['submit_proveedor_selectbox_key', 'submit_pagado_selectbox_key','submit_cantidad_input_key','submit_limite_input_key']:
+                    if k in st.session_state:
+                        del st.session_state[k]
                 
-                time.sleep(1)
                 st.rerun() # Rerun to show cleared form and updated table
             else:
                 st.error("No se pudo insertar el pedido debido a un problema con la base de datos. Consulta los logs.")
@@ -147,7 +148,7 @@ if formSubmit.Button:
             # Este else captura si alguna de las validaciones de ID falló y se usó 'return'
             st.warning("La inserción fue cancelada debido a validaciones fallidas. Por favor, revisa los mensajes de error/advertencia.")
 
-
+                        
 st.markdown("---")
 
 ## Pedidos con Entrega Hoy
@@ -178,7 +179,7 @@ if not today_orders.empty:
         ),
         "Proveedor": st.column_config.SelectboxColumn(
             "Proveedor",
-            options=["", "Alicia", "Dani", "Manuela", "Mari", "Marlen", "Marta"],
+            options=["", "Alicia", "Dani", "Manuela", "Mari", "Marlen","M.Antonia", "Marta"],
             required=False,
         ),
         "Coste_Material": st.column_config.NumberColumn("Coste Material", format="%.2f", step=0.01),
