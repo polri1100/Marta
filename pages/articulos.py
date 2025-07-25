@@ -40,12 +40,17 @@ if formSearch.Button:
     if search_params['Articulo'] == '-Selecciona Un Artículo-': # Usamos la constante del formulario
         del search_params['Articulo'] 
     
-        
+    clean_search_params = {k: v for k, v in search_params.items() if v is not None and (isinstance(v, str) and v.strip() != '' or not isinstance(v, str))}
+    if clean_search_params:
     # Aplicar la función de búsqueda sobre una copia del DataFrame original completo
-    st.session_state.df_display_articulos = f.searchFunction(st.session_state.db_articulos.copy(), search_params)
+        st.session_state.df_display_articulos = f.searchFunction(st.session_state.db_articulos.copy(), search_params)
 
-    if st.session_state.df_display_articulos.empty:
-        st.info("No se encontraron artículos con esos criterios de búsqueda.")
+        if st.session_state.df_display_articulos.empty:
+            st.warning("No se encontraron artículos con esos criterios de búsqueda.",icon="⚠️")
+    
+    else:
+        st.session_state.df_display_orders = st.session_state.db_articulos.copy()
+        st.info("No se ingresaron criterios de búsqueda. Mostrando todos los pedidos.")
 
 # Lógica para manejar el botón de reset del formulario de búsqueda
 if formSearch.ButtonReset:

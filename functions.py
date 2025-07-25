@@ -69,7 +69,7 @@ def deleteForm(min_id, max_id, tableName):
     """
     Creates a Streamlit form for deleting a record by ID with confirmation.
     """
-    with st.form(key=f'delete-form-{tableName}'):
+    with st.form(key=f'delete-form-{tableName}', clear_on_submit = True):
         st.subheader(f'Eliminar Registro de {tableName}')
         
         # Set default value for ID to the max_id if available, otherwise 1
@@ -84,7 +84,7 @@ def deleteForm(min_id, max_id, tableName):
         )
         
         # Add a confirmation checkbox
-        confirm_delete = st.checkbox(f"Confirmo que deseo eliminar el registro con ID {id_to_delete}")
+        confirm_delete = st.checkbox(f"Confirmo que deseo eliminar el registro")
         
         delete_button = st.form_submit_button('Eliminar Registro')
 
@@ -92,15 +92,15 @@ def deleteForm(min_id, max_id, tableName):
             if confirm_delete:
                 if id_to_delete is not None:
                     if delete_record(tableName, int(id_to_delete)):
-                        st.success(f"Registro ID {id_to_delete} eliminado con éxito.")
+                        st.success(f"Registro ID {id_to_delete} eliminado con éxito.", icon="✅")
                         load_and_refresh_data(tableName)
                         st.rerun()
-                    else:
-                        st.error(f"Error al eliminar el registro ID {id_to_delete}.")
+                    
                 else:
-                    st.warning("Por favor, introduce un ID válido para eliminar.")
+                    st.warning("Por favor, introduce un ID válido para eliminar.",icon="⚠️")
             else:
-                st.warning("Por favor, marca la casilla de confirmación para eliminar el registro.")
+                st.warning("Por favor, marca la casilla de confirmación para eliminar el registro.",icon="⚠️")
+
 
 def delete_record(tableName, record_id):
     """

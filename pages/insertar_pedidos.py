@@ -52,15 +52,15 @@ if formSubmit.Button:
     # AHORA USAMOS DIRECTAMENTE LOS ATRIBUTOS DE LA INSTANCIA formSubmit
     # QUE CONTIENEN LOS VALORES ENVIADOS EN ESTA EJECUCIÓN
     if formSubmit.customer == '-Selecciona Un CLiente-':
-        st.error("Por favor, introduce un nombre de cliente.")
+        st.warning("Por favor, introduce un nombre de cliente.",icon="⚠️")
         # No uses st.stop() aquí si quieres que el usuario vea el formulario con los errores
         # y pueda corregir sin perder lo que ya escribió.
-        # st.stop()
+        st.stop()
     if formSubmit.item == '-Selecciona Un Articulo-':
-        st.error("Por favor, introduce un nombre de artículo.")
-        # st.stop()
+        st.warning("Por favor, introduce un nombre de artículo.",icon="⚠️")
+        st.stop()
     if not formSubmit.customer or not formSubmit.item:
-        st.warning("Por favor, corrige los errores en el formulario para poder insertar el pedido.")
+        st.warning("Por favor, corrige los errores en el formulario para poder insertar el pedido.",icon="⚠️")
         # Salir de este bloque if para que el formulario se muestre con los errores
         # y el usuario pueda corregir y volver a intentar.
     else: # Solo procede si ambas validaciones iniciales pasan
@@ -73,7 +73,7 @@ if formSubmit.Button:
             if not filtered_cliente.empty:
                 cliente_id = int(filtered_cliente['ID'].iloc[0])
             else:
-                st.error(f"Por favor, selecciona un cliente válido de las sugerencias o créalo primero.")
+                st.warning(f"Por favor, selecciona un cliente válido de las sugerencias o créalo primero.",icon="⚠️")
                 st.stop() # No parar si queremos que el usuario pueda corregir
         else:
             st.error("No se pudo cargar la lista de clientes para validación.")
@@ -98,7 +98,7 @@ if formSubmit.Button:
                 if 'Importe_Sugerido' in filtered_articulo.columns:
                     articulo_importe = float(filtered_articulo['Importe_Sugerido'].iloc[0])
             else:
-                st.warning(f"Artículo '{formSubmit.item}' no encontrado en la base de datos de artículos. Los costes se establecerán en 0.")
+                st.warning(f"Artículo '{formSubmit.item}' no encontrado en la base de datos de artículos. Los costes se establecerán en 0.",icon="⚠️")
                 # Do not stop here, allow insertion with default costs if article not found, but warn user
         else:
             st.error("No se pudo cargar la lista de artículos para validación. No se puede insertar el pedido.")
@@ -135,7 +135,7 @@ if formSubmit.Button:
 
             response = f.insert_record('Pedidos', final_payload)
             if response:
-                st.success("Pedido insertado con éxito!")
+                st.success("Pedido insertado con éxito!", icon="✅")
                 # Disparar el reseteo del formulario en la próxima ejecución
                 for k in ['submit_proveedor_selectbox_key', 'submit_pagado_selectbox_key','submit_cantidad_input_key','submit_limite_input_key']:
                     if k in st.session_state:
@@ -143,10 +143,11 @@ if formSubmit.Button:
                 
                 st.rerun() # Rerun to show cleared form and updated table
             else:
-                st.error("No se pudo insertar el pedido debido a un problema con la base de datos. Consulta los logs.")
+                st.error("No se pudo insertar el pedido debido a un problema con la base de datos.")
         else:
             # Este else captura si alguna de las validaciones de ID falló y se usó 'return'
-            st.warning("La inserción fue cancelada debido a validaciones fallidas. Por favor, revisa los mensajes de error/advertencia.")
+            st.warning("La inserción fue cancelada debido a validaciones fallidas. Por favor, revisa los mensajes de error/advertencia.",icon="⚠️")
+            st.stop()
 
                         
 st.markdown("---")

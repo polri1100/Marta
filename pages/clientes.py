@@ -22,20 +22,30 @@ col_insert, col_search = st.columns(2)
 
 # --- FORMULARIO DE INSERCIÓN (En la primera columna) ---
 with col_insert:
+
     st.subheader('Nuevo Cliente')
     formSubmit = forms.CustomerForm('submit', 'Formulario para insertar', 'Insertar registro')
 
     if formSubmit.Button:
-        payload = {
-            'Nombre': formSubmit.name,
-            'Descripcion': formSubmit.description, 
-            'Telefono': formSubmit.phone,
-        }
-        nomralized_payload = {k:f.normalize_string(v) for k,v in payload.items()}
-        f.insert_record('Clientes', nomralized_payload)
-        st.success("Cliente insertado con éxito.")
-        f.load_and_refresh_data('Clientes')
-        st.rerun()
+        nombre_normalizado= f.normalize_string(formSubmit.name)
+        nombres_existentes = st.session_state.db_customers['Nombre'].apply(f.normalize_string).tolist()
+        if nombre_normalizado in nombres_existentes:
+            st.warning("Este cliente ya existe. Intenta con otro nombre o revisa la lista.",icon="⚠️")
+
+        elif not formSubmit.phone.isdigit() or len(formSubmit.phone) != 9:
+            st.warning("Teléfono inválido. Ha de tener 9 dígitos y ha de tener solo números")
+
+        else: 
+            payload = {
+                'Nombre': formSubmit.name,
+                'Descripcion': formSubmit.description, 
+                'Telefono': formSubmit.phone,
+            }
+            nomralized_payload = {k:f.normalize_string(v) for k,v in payload.items()}
+            f.insert_record('Clientes', nomralized_payload)
+            st.success("Cliente insertado con éxito.", icon="✅")
+            f.load_and_refresh_data('Clientes')
+            st.rerun()
 
 # --- FORMULARIO DE BÚSQUEDA (En la segunda columna) ---
 with col_search:
@@ -60,7 +70,7 @@ with col_search:
             st.session_state.df_display_clientes = filtered_df
 
             if filtered_df.empty:
-                st.warning("No se encontraron pedidos con esos criterios de búsqueda.")
+                st.warning("No se encontraron pedidos con esos criterios de búsqueda.",icon="⚠️")
 
         else:
 
@@ -111,12 +121,13 @@ if not st.session_state.df_display_clientes.empty:
                             update_payload[col] = val
 
                     if update_payload:
-                        result = f.update_record('Clientes', cliente_id_to_update, update_payload)
+                        normalized_update_payload = {k:f.normalize_string(v) for k,v in update_payload.items()}
+                        result = f.update_record('Clientes', cliente_id_to_update, normalized_update_payload)
                         if result is True:
                             any_update_successful = True
                             total_updated_rows += 1
                         else:
-                            st.warning(f"Error o no se pudo actualizar el registro ID: {cliente_id_to_update}. Consulta el log para más detalles.")
+                            st.warning(f"Error o no se pudo actualizar el registro ID: {cliente_id_to_update}.",icon="⚠️")
                 
                 if any_update_successful:
                     st.success(f"{total_updated_rows} registros de clientes actualizados con éxito en la base de datos.", icon="✅")
@@ -124,7 +135,7 @@ if not st.session_state.df_display_clientes.empty:
                     f.load_and_refresh_data('Clientes')
                     st.rerun()
                 elif total_updated_rows == 0 and not any_update_successful:
-                    st.info("No se realizaron cambios válidos o no hubo actualizaciones exitosas en los clientes.")
+                    st.warning("No se realizaron cambios válidos o no hubo actualizaciones exitosas en los clientes.",icon="⚠️")
 
             except Exception as e:
                 st.error(f"Error inesperado durante el proceso de guardar cambios en Clientes: {e}")

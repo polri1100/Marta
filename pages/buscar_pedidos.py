@@ -76,7 +76,7 @@ if formSearch.Button:
 
 
         if filtered_df.empty:
-            st.warning("No se encontraron pedidos con esos criterios de búsqueda.")
+            st.warning("No se encontraron pedidos con esos criterios de búsqueda.",icon="⚠️")
     else:
 
         # If no search criteria, show all orders
@@ -151,7 +151,7 @@ if not st.session_state.df_display_orders.empty:
                                     try:
                                         update_payload[col] = pd.to_datetime(val).date()
                                     except (ValueError, TypeError):
-                                        st.warning(f"Valor no válido para la fecha en la columna '{col}': '{val}'. Se ignorará este campo para la actualización del ID {pedido_id_to_update}.")
+                                        st.warning(f"Valor no válido para la fecha en la columna '{col}': '{val}'. Se ignorará este campo para la actualización del ID {pedido_id_to_update}.",icon="⚠️")
                                         continue # Skip this field for update_payload
                             elif col in ['Cantidad']:
                                 update_payload[col] = int(val) if pd.notna(val) else None
@@ -163,18 +163,19 @@ if not st.session_state.df_display_orders.empty:
                                 update_payload[col] = val
 
                     if update_payload:
-                        result = f.update_record('Pedidos', pedido_id_to_update, update_payload)
+                        normalized_update_payload = {k:f.normalize_string(v) for k,v in update_payload.items()}
+                        result = f.update_record('Pedidos', pedido_id_to_update, normalized_update_payload)
                         if result is True:
                             any_update_successful = True
                             total_updated_rows += 1
                         else:
-                            st.warning(f"Error o no se pudo actualizar el registro ID: {pedido_id_to_update}. Consulta el log para más detalles.")
+                            st.warning(f"Error o no se pudo actualizar el registro ID: {pedido_id_to_update}.",icon="⚠️")
                 if any_update_successful:
-                    st.success(f"{total_updated_rows} registros de pedidos actualizados con éxito en la base de datos.")
+                    st.success(f"{total_updated_rows} registros de pedidos actualizados con éxito en la base de datos.", icon="✅")
                     time.sleep(1)
                     st.rerun()
                 elif not any_update_successful and total_updated_rows == 0:
-                    st.info("No se realizaron cambios válidos o no hubo actualizaciones exitosas en los pedidos.")
+                    st.warning("No se realizaron cambios válidos o no hubo actualizaciones exitosas en los pedidos.",icon="⚠️")
 
             except Exception as e:
                 st.error(f"Error inesperado durante el proceso de guardar cambios en Pedidos: {e}")

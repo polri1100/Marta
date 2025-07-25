@@ -13,7 +13,7 @@ class ItemForm():
                 list_items.sort()
                 placeholder_items = ['-Selecciona Un Artículo-']+ list_items
         except Exception as e:
-            st.warning(f"No se pudieron cargar artículos para sugerencias: {e}")
+            st.warning(f"No se pudieron cargar artículos para sugerencias: {e}",icon="⚠️")
 
 
         # Initialize session state variables for search form inputs
@@ -91,7 +91,7 @@ class CustomerForm():
                 list_customers.sort()
                 placeholder_costumers=['-Selecciona Un Cliente-']+list_customers
         except Exception as e:
-            st.warning(f"No se pudieron cargar clientes para sugerencias: {e}")
+            st.warning(f"No se pudieron cargar clientes para sugerencias: {e}",icon="⚠️")
 
         # Initialize session state variables for search form inputs
         if formType == 'search':
@@ -286,6 +286,7 @@ class OrderForm():
                     self.limit = st.date_input(
                         'Limite', 
                         format="DD/MM/YYYY", 
+                        value = st.session_state.submit_limite_input_key,
                         key='submit_limite_input_key'
                     )
                 
