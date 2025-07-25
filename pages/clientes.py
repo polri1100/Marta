@@ -31,7 +31,8 @@ with col_insert:
             'Descripcion': formSubmit.description, 
             'Telefono': formSubmit.phone,
         }
-        f.insert_record('Clientes', payload)
+        nomralized_payload = {k:f.normalize_string(v) for k,v in payload.items()}
+        f.insert_record('Clientes', nomralized_payload)
         st.success("Cliente insertado con éxito.")
         f.load_and_refresh_data('Clientes')
         st.rerun()
