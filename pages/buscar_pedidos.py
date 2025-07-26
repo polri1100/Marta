@@ -45,7 +45,7 @@ st.session_state.df_display_orders = db_joined.copy()
 
 # --- Search Form ---
 st.subheader('Formulario de Búsqueda')
-formSearch = forms.OrderForm('search', 'Ingresa tus criterios de búsqueda', 'Buscar registro',placeholder_items,placeholder_customers)
+formSearch = forms.OrderForm('search', '', 'Buscar registro',placeholder_items,placeholder_customers)
 
 if formSearch.Button:
     search_params = {
@@ -171,7 +171,7 @@ if not st.session_state.df_display_orders.empty:
                         else:
                             st.warning(f"Error o no se pudo actualizar el registro ID: {pedido_id_to_update}.",icon="⚠️")
                 if any_update_successful:
-                    st.success(f"{total_updated_rows} registros de pedidos actualizados con éxito en la base de datos.", icon="✅")
+                    st.success(f"{total_updated_rows} pedidos actualizados con éxito!", icon="✅")
                     time.sleep(1)
                     st.rerun()
                 elif not any_update_successful and total_updated_rows == 0:

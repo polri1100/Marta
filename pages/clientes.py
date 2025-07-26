@@ -43,7 +43,7 @@ with col_insert:
             }
             nomralized_payload = {k:f.normalize_string(v) for k,v in payload.items()}
             f.insert_record('Clientes', nomralized_payload)
-            st.success("Cliente insertado con éxito.", icon="✅")
+            st.success("Cliente insertado con éxito!", icon="✅")
             f.load_and_refresh_data('Clientes')
             st.rerun()
 
@@ -130,7 +130,7 @@ if not st.session_state.df_display_clientes.empty:
                             st.warning(f"Error o no se pudo actualizar el registro ID: {cliente_id_to_update}.",icon="⚠️")
                 
                 if any_update_successful:
-                    st.success(f"{total_updated_rows} registros de clientes actualizados con éxito en la base de datos.", icon="✅")
+                    st.success(f"{total_updated_rows} clientes actualizados con éxito!", icon="✅")
                     time.sleep(1)
                     f.load_and_refresh_data('Clientes')
                     st.rerun()

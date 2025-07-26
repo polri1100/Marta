@@ -76,7 +76,7 @@ def deleteForm(min_id, max_id, tableName):
         default_delete_id = max_id if max_id is not None else 1
         
         id_to_delete = st.number_input(
-            f'ID del {tableName} a eliminar', 
+            f'ID del {tableName[:-1]} a eliminar', 
             min_value=min_id if min_id is not None else 1, 
             max_value=max_id if max_id is not None else 999999, # A reasonably large upper bound
             value=default_delete_id,

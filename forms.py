@@ -38,11 +38,11 @@ class ItemForm():
                 # Use st.text_input directly for submission, as autocomplete might not be strictly needed here,
                 # or use the simplified f.autocomplete_text_input if hints are desired.
                 self.item = st.text_input(
-                    'Articulo', 
+                    'Artículo', 
                     key=f'item_submit_articulo_{formType}'
                 )
                 self.desc = st.text_input(
-                    'Descripcion', 
+                    'Descripción', 
                     key=f'item_submit_descripcion_{formType}'
                 )
                 
@@ -55,12 +55,12 @@ class ItemForm():
                 # Input fields for search form
                 # Ahora usamos la versión revisada de f.autocomplete_text_input
                 self.item = st.selectbox(
-                    'Articulo', 
+                    'Artículo', 
                     placeholder_items, # Lista de todas las opciones para sugerencias
                     key=f'item_search_articulo_{formType}'
                 )
                 self.desc = st.text_input(
-                    'Descripcion', 
+                    'Descripción', 
                     key=f'item_search_descripcion_{formType}', 
                 )
 
@@ -120,11 +120,11 @@ class CustomerForm():
                     key=f'customer_submit_name_{formType}'
                 )
                 self.description = st.text_input(
-                    'Descripcion', 
+                    'Descripción', 
                     key=f'customer_submit_description_{formType}'
                 )
                 self.phone = st.text_input(
-                    'Telefono', 
+                    'Teléfono', 
                     key=f'customer_submit_phone_{formType}'
                 )
                 
@@ -142,11 +142,11 @@ class CustomerForm():
                     key=f'customer_search_name_{formType}'
                 )
                 self.description = st.text_input(
-                    'Descripcion', 
+                    'Descripción', 
                     key=f'customer_search_description_{formType}',
                 )
                 self.phone = st.text_input(
-                    'Telefono',
+                    'Teléfono',
                     key=f'customer_search_phone_{formType}',
                 )
 
@@ -233,7 +233,7 @@ class OrderForm():
 
                 with col1submit:
                     self.entregaCliente = st.date_input(
-                        'Entrega_Cliente', 
+                        'Entrega Cliente', 
                         format="DD/MM/YYYY", 
                         key='submit_entrega_cliente_input_key' # Clave de session_state para este widget
                     )
@@ -244,13 +244,13 @@ class OrderForm():
                         key='submit_customer_selectbox_key_input' 
                     )
                     self.item = st.selectbox(
-                        'Articulo', 
+                        'Artículo', 
                         list_items, 
                         key='submit_item_selectbox_key_input' 
                     )
                     
                     self.desc = st.text_input(
-                        'Descripcion', 
+                        'Descripción', 
                         key='submit_descripcion_input_key'
                     )
 
@@ -284,7 +284,7 @@ class OrderForm():
                     )
 
                     self.limit = st.date_input(
-                        'Limite', 
+                        'Límite', 
                         format="DD/MM/YYYY", 
                         value = st.session_state.submit_limite_input_key,
                         key='submit_limite_input_key'
@@ -305,7 +305,7 @@ class OrderForm():
                 with col1search:
                     # Input fields for search form
                     self.deliveryDate = st.date_input(
-                        'Entrega_Cliente', 
+                        'Entrega Cliente', 
                         value=st.session_state.search_entrega_cliente_value, 
                         format="DD/MM/YYYY", 
                         key='search_entrega_cliente_key'
@@ -316,7 +316,7 @@ class OrderForm():
                         key='search_customer_key'
                     )
                     self.item = st.selectbox(
-                        'Articulo', 
+                        'Artículo', 
                         list_items, 
                         key='search_item_key'
                     )
@@ -346,7 +346,7 @@ class OrderForm():
 
 
                     self.limit = st.date_input(
-                        'Limite', 
+                        'Límite', 
                         value=st.session_state.search_limite_value, 
                         format="DD/MM/YYYY", 
                         key='search_limite_key'
