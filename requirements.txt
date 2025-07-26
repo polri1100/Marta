@@ -4,3 +4,4 @@ pygsheets
 pip
 supabase
 unidecode
+Authlib
