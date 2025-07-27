@@ -6,12 +6,8 @@ import time
 import datetime
 
 
-st.set_page_config(layout="wide",
-                    page_title='Insertar Pedidos',
-                    page_icon='➕')
 
 st.markdown("# Insertar Pedidos ➕")
-st.sidebar.markdown("# Insertar Pedidos ➕")
 
 # Load databases for display (without normalized columns)
 db_pedidos = f.obtainTable('Pedidos')

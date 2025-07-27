@@ -6,11 +6,8 @@ import time
 
 
 # Configuración de la página
-st.set_page_config(layout="wide",
-                         page_title='Articulos',
-                         page_icon='📚')
+
 st.markdown("# Artículos 📚")
-st.sidebar.markdown("# Artículos 📚")
 
 # Cargar la base de datos (Articulos)
 # Usamos st.session_state para almacenar db_articulos una vez para evitar recargas constantes

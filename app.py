@@ -1,5 +1,8 @@
 import streamlit as st
 import pandas as pd 
+from login_page import login_form
+from home_page import home_content
+
 
 
 # --- CONFIGURACIÓN INICIAL DE LA PÁGINA ---
@@ -7,54 +10,50 @@ st.set_page_config(layout="wide",
                    page_title='EL LOCAL DE MARTA',
                    page_icon='👚')
 
-# --- LÓGICA DE AUTENTICACIÓN CON ST.LOGIN() ---
+# --- DEFINICIÓN DE LAS PÁGINAS PARA ST.NAVIGATION ---
 
-# st.user es un objeto que contiene información del usuario si está logueado.
-# st.user.is_logged_in es True si el usuario ha iniciado sesión.
-if not st.user.is_logged_in:
-    st.title("Acceso Restringido 🔒")
-    st.write("Por favor, inicia sesión para acceder a la aplicación.")
-    
-    # --- CSS PARA OCULTAR LA BARRA LATERAL CUANDO NO ESTÁ AUTENTICADO ---
-    st.markdown(
-        """
-        <style>
-        section.main[data-testid="stSidebar"] {
-            display: none !important;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+# La página de login (siempre visible cuando no está logueado)
+login_page = st.Page(login_form, title="Iniciar Sesión", icon=":material/login:")
 
-    # El botón de inicio de sesión de Streamlit para OIDC
-    # No necesitamos un input de contraseña, Streamlit redirige al proveedor.
-    # No es necesario envolverlo en un st.form()
-    if st.button("Iniciar Sesión con Google", key="login_button"):
-        st.login() # Esto redirigirá al usuario a la página de login de Google
+# La página de portada (la página por defecto una vez logueado)
+# Nota: La función home_content es lo que se llamará al seleccionar esta página
+home_page = st.Page(home_content, title="Portada", icon="👚", default=True)
 
-    st.stop() # Detiene la ejecución si no está logueado
-    
-# --- CONTENIDO DE LA PORTADA (SOLO SE MUESTRA SI st.user.is_logged_in es True) ---
-# Si llegamos aquí, el usuario ya ha iniciado sesión. La barra lateral se mostrará.
-
-st.markdown("# EL LOCAL DE MARTA 👚")
-st.sidebar.markdown("# Portada 👚") # Esto aparece en la barra lateral una vez logueado
-st.write(f"¡Bienvenida, {st.user.name} a la aplicación de gestión de tu negocio!") # st.user.name tendrá el nombre del usuario logueado
-st.write("Selecciona una opción para empezar:")
-
-# Botón para cerrar sesión (en la barra lateral)
-if st.sidebar.button("Cerrar Sesión", key="logout_button_sidebar"):
-    st.logout() # Esto cierra la sesión OIDC
+# La página de logout (un "botón" de navegación)
+def logout_function():
+    st.logout()
+    st.session_state.logged_in = False # Asegúrate de que el estado de login también se resetea
     st.rerun() # Para forzar la recarga a la pantalla de login
 
-st.markdown("---")
-st.subheader("Navegación Principal")
+logout_page = st.Page(logout_function, title="Cerrar Sesión", icon=":material/logout:")
 
-st.info("Para navegar a otras secciones (Artículos, Pedidos, etc.), usa los enlaces en la barra lateral izquierda.")
-st.write("Ahora que has iniciado sesión, puedes acceder a todas las secciones de la aplicación.")
-st.markdown("---")
-st.write("Contenido adicional de la portada aquí.")
+# Define tus páginas protegidas (las que están en la carpeta 'pages/')
+# Asegúrate de que los nombres de los archivos en 'pages/' coincidan
+articulos_page = st.Page("pages/articulos.py", title="Artículos", icon=":material/inventory_2:")
+clientes_page = st.Page("pages/clientes.py",title ="Clientes", icon=":material/person_2:" )
+buscar_pedidos_page = st.Page("pages/buscar_pedidos.py",title="Buscar Pedidos",icon="🔍")
+insertar_pedidos_page = st.Page("pages/insertar_pedidos.py",title="Insertar Pedidos",icon="➕")
 
-# La función app_main() ya no es necesaria con esta estructura.
-# El código se ejecuta de arriba abajo.
+
+
+# --- LÓGICA DE NAVEGACIÓN BASADA EN EL ESTADO DE LOGIN ---
+# Usamos st.user.is_logged_in para controlar la navegación
+# Puedes inicializar st.session_state.logged_in para tener un control más explícito si quieres,
+# pero st.user.is_logged_in es el estado oficial de st.login().
+
+if st.user.is_logged_in:
+    # Si está logueado, muestra el menú completo de navegación
+    pg = st.navigation(
+        {
+            "Principal": [home_page], # Puedes agrupar la Portada en una sección
+            "Gestión": [articulos_page,clientes_page,buscar_pedidos_page,insertar_pedidos_page], # Aquí irían tus otras páginas protegidas
+            # "Gestión": [articulos_page, pedidos_page, clientes_page], # Ejemplo con más páginas
+            "Cuenta": [logout_page], # La opción de cerrar sesión
+        }
+    )
+else:
+    # Si NO está logueado, solo muestra la página de login
+    pg = st.navigation([login_page])
+
+# Ejecuta la navegación
+pg.run()

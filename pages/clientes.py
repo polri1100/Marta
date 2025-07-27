@@ -5,11 +5,8 @@ import pandas as pd
 import time
 
 #title
-st.set_page_config(layout="wide",
-                         page_title='Clientes',
-                         page_icon='👨‍🦰')
+
 st.markdown("# Clientes 👨‍🦰👩‍🦰")
-st.sidebar.markdown("# Clientes 👨‍🦰👩‍🦰")
 
 # Load database (Clientes)
 if 'db_customers' not in st.session_state:

@@ -5,14 +5,11 @@ import pandas as pd
 import time
 import datetime
 
-st.set_page_config(layout="wide",
-                    page_title='Buscar Pedidos',
-                    page_icon='🔍')
+
 
 
 
 st.markdown("# Buscar Pedidos 🔍")
-st.sidebar.markdown("# Buscar Pedidos 🔍")
 
 # Load databases (these will not have normalized columns for display)
 db_pedidos = f.obtainTable('Pedidos')
