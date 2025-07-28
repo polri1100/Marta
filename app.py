@@ -36,7 +36,7 @@ if st.user.is_logged_in:
         st.error(f"Acceso denegado: El correo '{st.user.email}' no está autorizado para usar esta aplicación.")
         st.session_state.is_authorized = False
         st.logout() # Cierra la sesión de Google
-        st.rerun() # Fuerza una recarga para mostrar la pantalla de login de nuevo
+        #st.rerun() # Fuerza una recarga para mostrar la pantalla de login de nuevo
 else:
     # Si no está logueado en absoluto, marcamos como no autorizado
     st.session_state.is_authorized = False
