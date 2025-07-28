@@ -94,8 +94,13 @@ if not st.session_state.df_display_clientes.empty:
         "Descripcion": st.column_config.TextColumn("Descripcion"),
         "Telefono": st.column_config.TextColumn("Telefono"), # Ensure this matches your DB column name
     }
+
+    # Calculamos una altura suficiente para todas las filas.
+    # Una fila suele ocupar unos 35 píxeles de alto.
+    # Añadimos un poco de margen extra por si acaso (ej. 50 píxeles para el encabezado de la tabla).
+    required_height = len(st.session_state.df_display_clientes) * 35 + 50 
     
-    edited_db_clientes = st.data_editor(st.session_state.df_display_clientes, key='clientes_data_editor', column_config=column_config, hide_index=True, height=None)
+    edited_db_clientes = st.data_editor(st.session_state.df_display_clientes, key='clientes_data_editor', column_config=column_config, hide_index=True, height=required_height,use_container_width=True)
 
     # Logic to save edited changes
     if st.session_state['clientes_data_editor']['edited_rows']:
