@@ -27,7 +27,7 @@ def obtainTable(tableName):
     Returns a pandas DataFrame, or an empty DataFrame if an error occurs.
     """
     try:
-        response = supabase.table(tableName).select("*").order("ID", desc=True).limit(2000).execute()
+        response = supabase.table(tableName).select("*").order("ID", desc=True).execute()
         data = response.data
         if data:
             df = pd.DataFrame(data)
