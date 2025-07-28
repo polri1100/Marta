@@ -186,7 +186,7 @@ if not today_orders.empty:
         "Cantidad": st.column_config.NumberColumn("Cantidad", min_value=1.0, step=1.0),
     }
 
-    st.dataframe(today_orders, key='today_orders_data_editor', column_config=column_config_today, hide_index=True)
+    st.dataframe(today_orders, key='today_orders_data_editor', column_config=column_config_today, hide_index=True, use_container_width=True)
 else:
     st.info("No hay pedidos para mostrar de hoy")
 

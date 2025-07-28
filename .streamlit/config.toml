@@ -1,0 +1,2 @@
+[server]
+maxMessageSize = 200 # Aumenta a 200 MB

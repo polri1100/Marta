@@ -77,6 +77,6 @@ if not st.session_state.df_display_articulos.empty:
     }
     
     # Mostramos la tabla, ahora con todos los campos deshabilitados para edición
-    st.dataframe(st.session_state.df_display_articulos, column_config=column_config, hide_index=True, height=None)
+    st.dataframe(st.session_state.df_display_articulos, column_config=column_config, hide_index=True, use_container_width=True)
 else:
     st.info("No hay artículos para mostrar con los criterios actuales.")
