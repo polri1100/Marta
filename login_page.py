@@ -1,7 +1,6 @@
 import streamlit as st
 
 def login_form():
-    # --- CSS para OCULTAR LA BARRA LATERAL (mantener siempre) ---
     st.markdown(
         """
         <style>
@@ -15,14 +14,8 @@ def login_form():
         """,
         unsafe_allow_html=True
     )
-    # --- FIN CSS DE BARRA LATERAL ---
-
-    # --- Contenedor principal para el formulario de login ---
-    # Centramos el st.container en la página usando columnas.
-    # Esta es la forma más fiable de centrar bloques en Streamlit.
 
         # Aplicamos CSS a este contenedor para centrado vertical y horizontal
-        # Si no funciona bien, esta sección CSS podría ser la que necesita ajuste fino.
     st.markdown(
             """
             <style>
