@@ -28,7 +28,6 @@ def obtainTable(tableName):
     """
     try:
         response = supabase.table(tableName).select("*").order("ID", desc=True).execute()
-        #st.sidebar.write(f"Filas cargadas desde Supabase: {response.shape[0]}")
         data = response.data
         if data:
             df = pd.DataFrame(data)
