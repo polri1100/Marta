@@ -124,7 +124,6 @@ if not st.session_state.df_display_orders.empty:
         key='search_orders_data_editor',
         column_config=column_config,
         hide_index=True,
-        use_container_width=True
         )
 
     if st.session_state['search_orders_data_editor']['edited_rows']:
