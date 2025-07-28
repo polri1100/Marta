@@ -95,7 +95,7 @@ if not st.session_state.df_display_clientes.empty:
         "Telefono": st.column_config.TextColumn("Telefono"), # Ensure this matches your DB column name
     }
     
-    edited_db_clientes = st.data_editor(st.session_state.df_display_clientes, key='clientes_data_editor', column_config=column_config, hide_index=True, height=60000)
+    edited_db_clientes = st.data_editor(st.session_state.df_display_clientes, key='clientes_data_editor', column_config=column_config, hide_index=True)
 
     # Logic to save edited changes
     if st.session_state['clientes_data_editor']['edited_rows']:
