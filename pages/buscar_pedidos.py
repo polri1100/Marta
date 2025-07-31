@@ -141,12 +141,12 @@ if not st.session_state.df_display_orders.empty:
                         if col not in ['Cliente', 'Articulo']:
                             if col in ["Entrega_Cliente", "Limite", "Entrega_Proveedor", "Recogida_Proveedor", "Recogida_Cliente"]:
                                 if isinstance(val, datetime.date):
-                                    update_payload[col] = val
+                                    update_payload[col] = val.isoformat()
                                 elif pd.isna(val) or val == "":
                                     update_payload[col] = None
                                 else:
                                     try:
-                                        update_payload[col] = pd.to_datetime(val).date()
+                                        update_payload[col] = pd.to_datetime(val).date().isoformat()
                                     except (ValueError, TypeError):
                                         st.warning(f"Valor no válido para la fecha en la columna '{col}': '{val}'. Se ignorará este campo para la actualización del ID {pedido_id_to_update}.",icon="⚠️")
                                         continue # Skip this field for update_payload
@@ -160,8 +160,7 @@ if not st.session_state.df_display_orders.empty:
                                 update_payload[col] = val
 
                     if update_payload:
-                        normalized_update_payload = {k:f.normalize_string(v) for k,v in update_payload.items()}
-                        result = f.update_record('Pedidos', pedido_id_to_update, normalized_update_payload)
+                        result = f.update_record('Pedidos', pedido_id_to_update, update_payload)
                         if result is True:
                             any_update_successful = True
                             total_updated_rows += 1
