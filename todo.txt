@@ -49,5 +49,8 @@ Cantidad por defecto = 1
 Insertar Pedidos y buscar pedidos POR SEPARADO
 Contabilidad (mes y días numeritos y graficos)
 
+editar pedidos
+cantidad (que se multiplique)
+
 
 

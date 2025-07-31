@@ -79,7 +79,7 @@ if formSubmit.Button:
         articulo_coste_material = 0.0
         articulo_coste_proveedor = 0.0
         articulo_importe = 0.0
-
+        cantidad = float(formSubmit.quantity)
         # Usar formSubmit.item directamente para la normalización
         entered_item_normalized = f.normalize_string(formSubmit.item)
         
@@ -88,11 +88,11 @@ if formSubmit.Button:
             if not filtered_articulo.empty:
                 articulo_id = int(filtered_articulo['ID'].iloc[0])
                 if 'Coste_Material_Sugerido' in filtered_articulo.columns:
-                    articulo_coste_material = float(filtered_articulo['Coste_Material_Sugerido'].iloc[0])
+                    articulo_coste_material = float(filtered_articulo['Coste_Material_Sugerido'].iloc[0])*cantidad
                 if 'Coste_Proveedor_Sugerido' in filtered_articulo.columns:
-                    articulo_coste_proveedor = float(filtered_articulo['Coste_Proveedor_Sugerido'].iloc[0])
+                    articulo_coste_proveedor = float(filtered_articulo['Coste_Proveedor_Sugerido'].iloc[0])*cantidad
                 if 'Importe_Sugerido' in filtered_articulo.columns:
-                    articulo_importe = float(filtered_articulo['Importe_Sugerido'].iloc[0])
+                    articulo_importe = float(filtered_articulo['Importe_Sugerido'].iloc[0])*cantidad
             else:
                 st.warning(f"Artículo '{formSubmit.item}' no encontrado en la base de datos de artículos. Los costes se establecerán en 0.",icon="⚠️")
                 # Do not stop here, allow insertion with default costs if article not found, but warn user
