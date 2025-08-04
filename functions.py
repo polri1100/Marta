@@ -21,6 +21,7 @@ def normalize_string(s):
         return ""
     return unidecode.unidecode(str(s)).lower().strip()
 
+@st.cache_data(ttl=3600)
 def obtainTable(tableName):
     """
     Obtains data from a specified Supabase table.
@@ -93,7 +94,14 @@ def deleteForm(min_id, max_id, tableName):
                 if id_to_delete is not None:
                     if delete_record(tableName, int(id_to_delete)):
                         st.success(f"Registro ID {id_to_delete} eliminado con éxito.", icon="✅")
-                        load_and_refresh_data(tableName)
+                        obtainTable.clear()
+                        #load_and_refresh_data(tableName)
+                        if 'df_display_orders' in st.session_state:
+                            del st.session_state['df_display_orders']
+                        if 'db_customers' in st.session_state:
+                            del st.session_state['db_customers']
+                        if 'df_display_clientes' in st.session_state:
+                            del st.session_state['df_display_clientes']
                         st.rerun()
                     
                 else:
@@ -127,7 +135,7 @@ def insert_record(tableName, data):
     try:
         response = supabase.table(tableName).insert(data).execute()
         if response.data:
-            return response.data
+            return True
         else:
             st.error(f"Error al insertar registro en {tableName}: {response.json()}")
             return None
@@ -141,16 +149,7 @@ def update_record(tableName, record_id, data):
     Returns True on success, False on failure.
     """
     try:
-        # Filter out 'None' values from data to avoid updating columns to NULL unintentionally
-        # Only update columns that actually have a value (not None) in the payload
-        clean_data = {k: v for k, v in data.items() if v is not None}
-        
-        # Special handling for empty strings for date fields, convert them to None
-        for key in ["Entrega_Cliente", "Limite", "Entrega_Proveedor", "Recogida_Proveedor", "Recogida_Cliente"]:
-            if key in clean_data and clean_data[key] == "":
-                clean_data[key] = None
-
-        response = supabase.table(tableName).update(clean_data).eq("ID", record_id).execute()
+        response = supabase.table(tableName).update(data).eq("ID", record_id).execute()
         if response.data:
             return True
         else:

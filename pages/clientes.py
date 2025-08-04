@@ -11,7 +11,8 @@ st.markdown("# Clientes 👨‍🦰👩‍🦰")
 # Load database (Clientes)
 if 'db_customers' not in st.session_state:
     f.load_and_refresh_data('Clientes')
-
+if 'df_display_clientes' not in st.session_state:
+    st.session_state.df_display_clientes = st.session_state.db_customers.copy()
 
 max_id, min_id = f.returnMaxMinID(st.session_state.db_customers)
 # --- SECCIÓN DE FORMULARIOS EN COLUMNAS ---
@@ -39,10 +40,18 @@ with col_insert:
                 'Telefono': formSubmit.phone,
             }
             nomralized_payload = {k:f.normalize_string(v) for k,v in payload.items()}
-            f.insert_record('Clientes', nomralized_payload)
-            st.success("Cliente insertado con éxito!", icon="✅")
-            f.load_and_refresh_data('Clientes')
-            st.rerun()
+            if f.insert_record('Clientes', nomralized_payload):
+
+                st.success("Cliente insertado con éxito!", icon="✅")
+                #f.load_and_refresh_data('Clientes')
+                f.obtainTable.clear()
+                if 'db_customers' in st.session_state:
+                    del st.session_state['db_customers']
+                if 'df_display_clientes' in st.session_state:
+                    del st.session_state['df_display_clientes']
+                if 'pedidos_changes_detected' in st.session_state: # Limpiamos tambien la del otro modulo
+                    del st.session_state['pedidos_changes_detected']
+                st.rerun()
 
 # --- FORMULARIO DE BÚSQUEDA (En la segunda columna) ---
 with col_search:
@@ -88,6 +97,10 @@ st.markdown("---") # Separador visual entre formularios y tabla
 st.subheader('Datos de Clientes')
 
 if not st.session_state.df_display_clientes.empty:
+
+    if 'clientes_changes_detected' not in st.session_state:
+        st.session_state.clientes_changes_detected = False
+
     column_config = {
         "ID": st.column_config.NumberColumn("ID del Cliente", disabled=True),
         "Nombre": st.column_config.TextColumn("Nombre"),
@@ -99,6 +112,9 @@ if not st.session_state.df_display_clientes.empty:
 
     # Logic to save edited changes
     if st.session_state['clientes_data_editor']['edited_rows']:
+        st.session_state.clientes_changes_detected = True
+
+    if st.session_state.clientes_changes_detected:
         st.info("Detectados cambios en el editor de datos. Presiona 'Guardar Cambios' para actualizar.")
         if st.button('Guardar Cambios en Clientes', key='save_edited_clientes'):
             try:
@@ -128,8 +144,13 @@ if not st.session_state.df_display_clientes.empty:
                 
                 if any_update_successful:
                     st.success(f"{total_updated_rows} clientes actualizados con éxito!", icon="✅")
-                    time.sleep(1)
-                    f.load_and_refresh_data('Clientes')
+                    f.obtainTable.clear()
+                    if 'db_customers' in st.session_state:
+                        del st.session_state['db_customers']
+                    if 'df_display_clientes' in st.session_state:
+                        del st.session_state['df_display_clientes']
+                    st.session_state.clientes_changes_detected = False
+                    st.session_state['clientes_data_editor']['edited_rows'] = {}
                     st.rerun()
                 elif total_updated_rows == 0 and not any_update_successful:
                     st.warning("No se realizaron cambios válidos o no hubo actualizaciones exitosas en los clientes.",icon="⚠️")

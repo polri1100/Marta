@@ -37,8 +37,9 @@ max_id, min_id = f.returnMaxMinID(db_pedidos)
 # Initialize displayed_orders_df only if it doesn't exist.
 # This ensures that after a rerun (e.g., from reset or update),
 # the search results (if any) are preserved, not overwritten by the full table.
+if 'df_display_orders' not in st.session_state:
+    st.session_state.df_display_orders = db_joined.copy()
 
-st.session_state.df_display_orders = db_joined.copy()
 
 # --- Search Form ---
 st.subheader('Formulario de Búsqueda')
@@ -93,6 +94,9 @@ st.markdown("---")
 ## Visualización y Edición de Pedidos
 if not st.session_state.df_display_orders.empty:
 
+    if 'pedidos_changes_detected' not in st.session_state:
+        st.session_state.pedidos_changes_detected = False
+
     column_config = {
         "ID": st.column_config.NumberColumn("ID del Pedido", disabled=True),
         "Cliente": st.column_config.TextColumn("Cliente", disabled=True),
@@ -127,6 +131,9 @@ if not st.session_state.df_display_orders.empty:
         )
 
     if st.session_state['search_orders_data_editor']['edited_rows']:
+        st.session_state.pedidos_changes_detected = True
+
+    if st.session_state.pedidos_changes_detected:
         st.info("Detectados cambios en el editor de datos. Presiona 'Guardar Cambios' para actualizar.")
         if st.button('Guardar Cambios en Pedidos', key='save_edited_search_orders'):
             try:
@@ -168,6 +175,9 @@ if not st.session_state.df_display_orders.empty:
                             st.warning(f"Error o no se pudo actualizar el registro ID: {pedido_id_to_update}.",icon="⚠️")
                 if any_update_successful:
                     st.success(f"{total_updated_rows} pedidos actualizados con éxito!", icon="✅")
+                    f.obtainTable.clear()
+                    st.session_state.pedidos_changes_detected = False
+                    st.session_state['search_orders_data_editor']['edited_rows'] = {}
                     time.sleep(1)
                     st.rerun()
                 elif not any_update_successful and total_updated_rows == 0:
@@ -184,4 +194,4 @@ st.markdown("---")
 
 f.deleteForm(min_id, max_id, 'Pedidos')
 
-st.session_state.df_display_orders = db_joined.copy()
+#st.session_state.df_display_orders = db_joined.copy()

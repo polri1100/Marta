@@ -135,6 +135,9 @@ if formSubmit.Button:
             response = f.insert_record('Pedidos', final_payload)
             if response:
                 st.success("Pedido insertado con éxito!", icon="✅")
+                f.obtainTable.clear()
+                if 'df_display_orders' in st.session_state:
+                    del st.session_state['df_display_orders']
                 # Disparar el reseteo del formulario en la próxima ejecución
                 for k in ['submit_proveedor_selectbox_key', 'submit_pagado_selectbox_key','submit_cantidad_input_key','submit_limite_input_key']:
                     if k in st.session_state:
