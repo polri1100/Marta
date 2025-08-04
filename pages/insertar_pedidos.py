@@ -79,7 +79,10 @@ if formSubmit.Button:
         articulo_coste_material = 0.0
         articulo_coste_proveedor = 0.0
         articulo_importe = 0.0
+        if formSubmit.quantity == 0.0:
+            formSubmit.quantity = 1.0
         cantidad = float(formSubmit.quantity)
+
         # Usar formSubmit.item directamente para la normalización
         entered_item_normalized = f.normalize_string(formSubmit.item)
         
