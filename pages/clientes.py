@@ -10,7 +10,7 @@ st.markdown("# Clientes 👨‍🦰👩‍🦰")
 
 # Load database (Clientes)
 if 'db_customers' not in st.session_state:
-    f.load_and_refresh_data('Clientes')
+    st.session_state.db_customers =f.obtainTable('Clientes')
 if 'df_display_clientes' not in st.session_state:
     st.session_state.df_display_clientes = st.session_state.db_customers.copy()
 
@@ -44,7 +44,7 @@ with col_insert:
 
                 st.success("Cliente insertado con éxito!", icon="✅")
                 #f.load_and_refresh_data('Clientes')
-                f.obtainTable.clear()
+                f.clear_obtain_table_cache()
                 if 'db_customers' in st.session_state:
                     del st.session_state['db_customers']
                 if 'df_display_clientes' in st.session_state:
@@ -144,7 +144,7 @@ if not st.session_state.df_display_clientes.empty:
                 
                 if any_update_successful:
                     st.success(f"{total_updated_rows} clientes actualizados con éxito!", icon="✅")
-                    f.obtainTable.clear()
+                    f.clear_obtain_table_cache()
                     if 'db_customers' in st.session_state:
                         del st.session_state['db_customers']
                     if 'df_display_clientes' in st.session_state:

@@ -47,6 +47,8 @@ def obtainTable(tableName):
         st.error(f"Error al obtener la tabla '{tableName}': {e}")
         return pd.DataFrame()
 
+def clear_obtain_table_cache():
+    obtainTable.clear()
 def obtainTableWithNormalized(tableName):
     """
     Obtains data from a specified Supabase table and adds normalized columns
@@ -94,7 +96,7 @@ def deleteForm(min_id, max_id, tableName):
                 if id_to_delete is not None:
                     if delete_record(tableName, int(id_to_delete)):
                         st.success(f"Registro ID {id_to_delete} eliminado con éxito.", icon="✅")
-                        obtainTable.clear()
+                        clear_obtain_table_cache()
                         #load_and_refresh_data(tableName)
                         if 'df_display_orders' in st.session_state:
                             del st.session_state['df_display_orders']

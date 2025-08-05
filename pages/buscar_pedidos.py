@@ -175,7 +175,7 @@ if not st.session_state.df_display_orders.empty:
                             st.warning(f"Error o no se pudo actualizar el registro ID: {pedido_id_to_update}.",icon="⚠️")
                 if any_update_successful:
                     st.success(f"{total_updated_rows} pedidos actualizados con éxito!", icon="✅")
-                    f.obtainTable.clear()
+                    f.clear_obtain_table_cache()
                     st.session_state.pedidos_changes_detected = False
                     st.session_state['search_orders_data_editor']['edited_rows'] = {}
                     time.sleep(1)
