@@ -199,7 +199,7 @@ def move_order_backward(order_id, current_stage):
     
     if current_stage == 'costurera':
         # Mover a "Local para costurera": Vaciar 'Entrega_Proveedor' y 'Proveedor'
-        update_payload = {'Entrega_Proveedor': None, 'Proveedor': None}
+        update_payload = {'Entrega_Proveedor': None}
     elif current_stage == 'local_para_entregar':
         # Mover a "En la costurera": Vaciar 'Recogida_Proveedor'
         update_payload = {'Recogida_Proveedor': None}
