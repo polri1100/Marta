@@ -21,7 +21,7 @@ def normalize_string(s):
         return ""
     return unidecode.unidecode(str(s)).lower().strip()
 
-@st.cache_resource
+@st.cache_data(ttl=3600)
 def obtainTable(tableName):
     """
     Obtains data from a specified Supabase table.
@@ -99,7 +99,7 @@ def deleteForm(min_id, max_id, tableName):
                 if id_to_delete is not None:
                     if delete_record(tableName, int(id_to_delete)):
                         st.success(f"Registro ID {id_to_delete} eliminado con éxito.", icon="✅")
-                        clear_table_cache()
+                        st.cache_data.clear()
                         #load_and_refresh_data(tableName)
                         if 'df_display_orders' in st.session_state:
                             del st.session_state['df_display_orders']

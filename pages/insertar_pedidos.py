@@ -134,7 +134,7 @@ if formSubmit.Button:
             response = f.insert_record('Pedidos', final_payload)
             if response:
                 st.success("Pedido insertado con éxito!", icon="✅")
-                f.clear_table_cache()
+                st.cache_data.clear()
                 if 'df_display_orders' in st.session_state:
                     del st.session_state['df_display_orders']
                 # Disparar el reseteo del formulario en la próxima ejecución

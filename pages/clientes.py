@@ -46,7 +46,7 @@ with col_insert:
 
                 st.success("Cliente insertado con éxito!", icon="✅")
                 #f.load_and_refresh_data('Clientes')
-                f.clear_table_cache()
+                st.cache_data.clear()
                 if 'db_customers' in st.session_state:
                     del st.session_state['db_customers']
                 if 'df_display_clientes' in st.session_state:
@@ -146,7 +146,7 @@ if not st.session_state.df_display_clientes.empty:
                 
                 if any_update_successful:
                     st.success(f"{total_updated_rows} clientes actualizados con éxito!", icon="✅")
-                    f.clear_table_cache()
+                    st.cache_data.clear()
                     if 'db_customers' in st.session_state:
                         del st.session_state['db_customers']
                     if 'df_display_clientes' in st.session_state:
