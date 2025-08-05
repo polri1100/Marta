@@ -47,8 +47,6 @@ def obtainTable(tableName):
         st.error(f"Error al obtener la tabla '{tableName}': {e}")
         return pd.DataFrame()
 
-def clear_obtain_table_cache():
-    obtainTable.clear()
 def obtainTableWithNormalized(tableName):
     """
     Obtains data from a specified Supabase table and adds normalized columns

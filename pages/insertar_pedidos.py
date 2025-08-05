@@ -5,7 +5,9 @@ import pandas as pd
 import time
 import datetime
 
-
+#funcion para limpiar el cache (está aquí como prueba)
+def clear_obtain_table_cache():
+    f.obtainTable.clear()
 
 st.markdown("# Insertar Pedidos ➕")
 
@@ -135,7 +137,7 @@ if formSubmit.Button:
             response = f.insert_record('Pedidos', final_payload)
             if response:
                 st.success("Pedido insertado con éxito!", icon="✅")
-                f.clear_obtain_table_cache()
+                clear_obtain_table_cache()
                 if 'df_display_orders' in st.session_state:
                     del st.session_state['df_display_orders']
                 # Disparar el reseteo del formulario en la próxima ejecución
