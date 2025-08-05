@@ -172,6 +172,46 @@ def update_record(tableName, record_id, data):
         st.error(f"Error al actualizar registro ID {record_id} en {tableName}: {e}")
         return False
 
+def move_order_forward(order_id, current_stage):
+
+    today = datetime.date.today().isoformat()
+    update_payload = {}
+    
+    if current_stage == 'local_para_costurera':
+        # Mover a "En la costurera": Actualizar 'Entrega_Proveedor'
+        update_payload = {'Entrega_Proveedor': today}
+
+    elif current_stage == 'costurera':
+        # Mover a "Local para entregar": Actualizar 'Recogida_Proveedor'
+        update_payload = {'Recogida_Proveedor': today}
+    elif current_stage == 'local_para_entregar':
+        # Mover a "Entregado": Actualizar 'Recogida_Cliente'
+        update_payload = {'Recogida_Cliente': today}
+    
+    if update_payload:
+        return update_record('Pedidos', order_id, update_payload)
+    
+    return False
+
+def move_order_backward(order_id, current_stage):
+
+    update_payload = {}
+    
+    if current_stage == 'costurera':
+        # Mover a "Local para costurera": Vaciar 'Entrega_Proveedor' y 'Proveedor'
+        update_payload = {'Entrega_Proveedor': None, 'Proveedor': None}
+    elif current_stage == 'local_para_entregar':
+        # Mover a "En la costurera": Vaciar 'Recogida_Proveedor'
+        update_payload = {'Recogida_Proveedor': None}
+    elif current_stage == 'entregado':
+        # Mover a "Local para entregar": Vaciar 'Recogida_Cliente'
+        update_payload = {'Recogida_Cliente': None}
+    
+    if update_payload:
+        return update_record('Pedidos', order_id, update_payload)
+    
+    return False
+
 def ordersJoin(df_pedidos, df_clientes, df_articulos):
     """
     Performs a join operation between orders, clients, and articles DataFrames.

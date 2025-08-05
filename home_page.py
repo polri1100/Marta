@@ -54,6 +54,16 @@ def home_content():
                         st.write(f"**Fecha de Entrega:** {row['Entrega_Cliente'].strftime('%d/%m/%Y') if pd.notna(row['Entrega_Cliente']) else 'No asignada'}")
                         st.write(f"**Cliente:** {row['Cliente']}")
                         st.write(f"**Descripción:** {row['Descripcion']}")
+                        
+                        colbtn11, colbtn21, colbtn31 = st.columns(3)
+
+
+                        with colbtn31:
+
+                            if st.button("▶️", key=f"move_forward_{row['ID']}_1"):
+                                if f.move_order_forward(row['ID'], 'local_para_costurera'):
+                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                    st.rerun()
 
             # Contenedor 2: En la costurera
             with col2:
@@ -68,6 +78,21 @@ def home_content():
                         st.write(f"**Descripción:** {row['Descripcion']}")
                         st.write(f"**Costurera:** {row['Proveedor']}")
 
+                        colbtn12, colbtn22, colbtn32 = st.columns(3)
+                        with colbtn12:
+
+                            if st.button("◀️", key=f"move_backward_{row['ID']}_2"):
+                                if f.move_order_backward(row['ID'], 'costurera'):
+                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                    st.rerun()
+
+                        with colbtn32:
+                            
+                            if st.button("▶️", key=f"move_forward_{row['ID']}_2"):
+                                if f.move_order_forward(row['ID'], 'costurera'):
+                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                    st.rerun()
+
             # Contenedor 3: Local para entregar
             with col3:
                 st.markdown("### Local para entregar")
@@ -80,6 +105,19 @@ def home_content():
                         st.write(f"**Cliente:** {row['Cliente']}")
                         st.write(f"**Descripción:** {row['Descripcion']}")
 
+                        colbtn13, colbtn23, colbtn33 = st.columns(3)
+                        with colbtn13:
+
+                            if st.button("◀️", key=f"move_backward_{row['ID']}_3"):
+                                if f.move_order_backward(row['ID'], 'local_para_entregar'):
+                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                    st.rerun()
+
+                        with colbtn33:
+                            if st.button("▶️", key=f"move_forward_{row['ID']}_3"):
+                                if f.move_order_forward(row['ID'], 'local_para_entregar'):
+                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                    st.rerun()
 
 
     else:
