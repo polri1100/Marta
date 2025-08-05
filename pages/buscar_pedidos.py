@@ -6,8 +6,6 @@ import time
 import datetime
 
 
-def clear_obtain_table_cache():
-    f.obtainTable.clear()
 
 
 st.markdown("# Buscar Pedidos 🔍")
@@ -176,7 +174,9 @@ if not st.session_state.df_display_orders.empty:
                             st.warning(f"Error o no se pudo actualizar el registro ID: {pedido_id_to_update}.",icon="⚠️")
                 if any_update_successful:
                     st.success(f"{total_updated_rows} pedidos actualizados con éxito!", icon="✅")
-                    clear_obtain_table_cache()
+                    f.clear_table_cache()
+                    if 'df_display_orders' in st.session_state:
+                        del st.session_state['df_display_orders']
                     st.session_state.pedidos_changes_detected = False
                     st.session_state['search_orders_data_editor']['edited_rows'] = {}
                     time.sleep(1)
