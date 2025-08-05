@@ -47,10 +47,18 @@ def obtainTable(tableName):
         st.error(f"Error al obtener la tabla '{tableName}': {e}")
         return pd.DataFrame()
 
-def clear_table_cache():
-    # Esto invalida el cache de obtainTable.
-    obtainTable.clear()
-    return True
+@st.cache_data
+def get_orders_data():
+    return obtainTable('Pedidos')
+
+@st.cache_data
+def get_clients_data():
+    return obtainTable('Clientes')
+
+@st.cache_data
+def get_articles_data():
+    return obtainTable('Articulos')
+
 
 def obtainTableWithNormalized(tableName):
     """
