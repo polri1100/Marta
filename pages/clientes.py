@@ -126,8 +126,9 @@ if not st.session_state.df_display_clientes.empty:
                 any_update_successful = False
                 total_updated_rows = 0
 
-                for index_in_editor, edited_data in changes.items():
-                    cliente_id_to_update = original_df_for_compare.loc[index_in_editor, 'ID']
+                for index_in_editor_str, edited_data in changes.items():
+                    index_in_editor = int(index_in_editor_str)
+                    cliente_id_to_update = original_df_for_compare.iloc[index_in_editor]['ID']
                     update_payload = {}
                     for col, val in edited_data.items():
                         if pd.isna(val) or val == "": # Handle empty string for text fields, and NaN for numbers

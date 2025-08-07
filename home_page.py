@@ -4,7 +4,7 @@ import pandas as pd
 
 def home_content():
     st.markdown("# EL TALLER DE MARTA 👚")
-    st.write(f"¡Bienvenida, {st.user.name} a la aplicación de gestión de tu negocio!")
+    #st.write(f"¡Bienvenida, {st.user.name} a la aplicación de gestión de tu negocio!")
 
     st.markdown("---") 
     st.markdown("# Seguimiento de Pedidos 🗓️")
@@ -110,6 +110,7 @@ def home_content():
                         st.write(f"**Fecha de Entrega:** {row['Entrega_Cliente'].strftime('%d/%m/%Y') if pd.notna(row['Entrega_Cliente']) else 'No asignada'}")
                         st.write(f"**Cliente:** {row['Cliente']}")
                         st.write(f"**Descripción:** {row['Descripcion']}")
+                        st.write(row['Pagado'])
 
                         colizq3, colder3 = st.columns(2)
                         with colizq3:

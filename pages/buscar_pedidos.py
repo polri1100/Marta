@@ -140,8 +140,9 @@ if not st.session_state.df_display_orders.empty:
                 original_df_for_compare = st.session_state.df_display_orders.copy()
                 any_update_successful = False
                 total_updated_rows = 0
-                for index_in_editor, edited_data in changes.items():
-                    pedido_id_to_update = original_df_for_compare.loc[index_in_editor, 'ID']
+                for index_in_editor_str, edited_data in changes.items():
+                    index_in_editor = int(index_in_editor_str)
+                    pedido_id_to_update = original_df_for_compare.iloc[index_in_editor]['ID']
                     update_payload = {}
                     for col, val in edited_data.items():
                         if col not in ['Cliente', 'Articulo']:

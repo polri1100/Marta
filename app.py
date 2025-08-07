@@ -61,10 +61,18 @@ logout_page = st.Page(logout_function, title="Cerrar Sesión", icon=":material/l
 
 # Define tus páginas protegidas (las que están en la carpeta 'pages/')
 # Asegúrate de que los nombres de los archivos en 'pages/' coincidan
+#GESTION
 articulos_page = st.Page("pages/articulos.py", title="Artículos", icon=":material/inventory_2:")
 clientes_page = st.Page("pages/clientes.py",title ="Clientes", icon=":material/person_2:" )
 buscar_pedidos_page = st.Page("pages/buscar_pedidos.py",title="Buscar Pedidos",icon=":material/search:")
 insertar_pedidos_page = st.Page("pages/insertar_pedidos.py",title="Insertar Pedidos",icon=":material/add:")
+
+#INFORMES
+contabilidad_page = st.Page("pages/contabilidad.py",title="Contabilidad", icon=":material/monitoring:")
+limite_page = st.Page("pages/limite.py", title="Límite")
+morosos_page = st.Page("pages/morosos.py", title="Morosos")
+abandonos_page = st.Page("pages/abandonos.py", title="Pedidos Abandonados")
+proveedores_page = st.Page("pages/proveedores.py", title="Proveedores")
 
 
 
@@ -81,7 +89,14 @@ if st.user.is_logged_in:
     )
 else:
     # Si NO está logueado, solo muestra la página de login
-    pg = st.navigation([login_page])
-
+    #pg = st.navigation([login_page])
+    pg = st.navigation(
+        {
+            "Principal": [home_page], # Puedes agrupar la Portada en una sección
+            "Gestión": [articulos_page,clientes_page,buscar_pedidos_page,insertar_pedidos_page], # Aquí irían tus otras páginas protegidas
+            "Informe":[contabilidad_page, limite_page, morosos_page, abandonos_page, proveedores_page],
+            "Cuenta": [logout_page], # La opción de cerrar sesión
+        }
+    )
 # Ejecuta la navegación
 pg.run()

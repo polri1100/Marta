@@ -5,3 +5,4 @@ pip
 supabase
 unidecode
 Authlib
+streamlit_calendar

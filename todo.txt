@@ -51,6 +51,32 @@ Contabilidad (mes y días numeritos y graficos)
 
 editar pedidos
 cantidad (que se multiplique)
+-----------------------------------------------------------
+
+-añadir campos
+fecha pago proveedor 
+
+-Seguimiento de pedidos
+intentar modificar pagado en "local para entregar"
+
+-Contabilidad
+Cambiar nombre
+Poner logo
+añadir count de pedidos
+calcular coste total: coste proveedor + coste material
+añadir margen: (importe - coste)/importe
+cambiar grafico por dos columnas
+cambiar fecha por fecha recogida
+añadir filtros: articulo, cliente, proveedor
+
+-Informe
+Morosos: debe dinero (producto entregado no pagado)
+Pedido abandonado: dos meseses en local para entregar + comentario para recordar a marta que modifique la descripcion del pedido
+fecha Limite, calendario si se puede. Sino como seguimiento de pedidos (hoy, mañana, pasado mañana)
+pago proveedor (mostrar fecha pago proveedor). que se actualice el campo fecha pago proveedor cuando le de al tick
+
+--------------------------------------------------------------
+
 
 
 
