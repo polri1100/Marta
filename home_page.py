@@ -47,25 +47,35 @@ def home_content():
             with col1:
                 st.markdown("### Local para costurera")
                 st.info(f"Pedidos: {len(local_para_costurera)}")
+                opciones_costureras = ["Alicia", "Dani", "Manuela", "Mari", "Marlen", "M.Antonia", "Marta"]
                 
                 # Mostrar tarjetas de los pedidos
                 for index, row in local_para_costurera.iterrows():
                     with st.expander(f"{row['Cliente']} | {row['Articulo']}"):
                         st.write(f"**Fecha de Entrega:** {row['Entrega_Cliente'].strftime('%d/%m/%Y') if pd.notna(row['Entrega_Cliente']) else 'No asignada'}")
-                        st.write(f"**Cliente:** {row['Cliente']}")
                         st.write(f"**Descripción:** {row['Descripcion']}")
                         
-                        colizq1, colder1 = st.columns(2)
+                        with st.form(key=f"form_costurera_{row['ID']}"):
 
 
-                        with colder1:
+                            costurera_seleccionada = st.radio(
+                                        label="Selecciona una costurera:",
+                                        options = opciones_costureras, # Opción vacía por defecto
+                                        index=opciones_costureras.index(row['Proveedor']) if row['Proveedor'] in opciones_costureras else 0,
+                                        key=f"radio_costurera_{row['ID']}",
+                                        horizontal=True
+                            )
 
-                            if st.button("▶️", key=f"move_forward_{row['ID']}_1"):
-                                if f.move_order_forward(row['ID'], 'local_para_costurera'):
-                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
-                                    if 'df_display_orders' in st.session_state:
-                                        del st.session_state['df_display_orders']
-                                    st.rerun()
+                            st.write("")
+                            colizq1, colmed1, colder1 = st.columns([1, 1, 1])
+
+                            with colmed1:
+                                if st.form_submit_button("▶️"):
+                                    if f.move_order_forward(row['ID'], 'local_para_costurera',costurera_seleccionada):
+                                        st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                        if 'df_display_orders' in st.session_state:
+                                            del st.session_state['df_display_orders']
+                                        st.rerun()
 
             # Contenedor 2: En la costurera
             with col2:
@@ -76,59 +86,71 @@ def home_content():
                 for index, row in costurera.iterrows():
                     with st.expander(f"{row['Cliente']} | {row['Articulo']}"):
                         st.write(f"**Fecha de Entrega:** {row['Entrega_Cliente'].strftime('%d/%m/%Y') if pd.notna(row['Entrega_Cliente']) else 'No asignada'}")
-                        st.write(f"**Cliente:** {row['Cliente']}")
                         st.write(f"**Descripción:** {row['Descripcion']}")
                         st.write(f"**Costurera:** {row['Proveedor']}")
 
                         colizq2, colder2 = st.columns(2)
                         with colizq2:
-
-                            if st.button("◀️", key=f"move_backward_{row['ID']}_2"):
-                                if f.move_order_backward(row['ID'], 'costurera'):
-                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
-                                    if 'df_display_orders' in st.session_state:
-                                        del st.session_state['df_display_orders']
-                                    st.rerun()
+                            sub_col1_izq, sub_col2_izq, sub_col3_izq = st.columns([1, 1, 1])
+                            with sub_col2_izq:
+                                if st.button("◀️", key=f"move_backward_{row['ID']}_2"):
+                                    if f.move_order_backward(row['ID'], 'costurera'):
+                                        st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                        if 'df_display_orders' in st.session_state:
+                                            del st.session_state['df_display_orders']
+                                        st.rerun()
 
                         with colder2:
-                            
-                            if st.button("▶️", key=f"move_forward_{row['ID']}_2"):
-                                if f.move_order_forward(row['ID'], 'costurera'):
-                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
-                                    if 'df_display_orders' in st.session_state:
-                                        del st.session_state['df_display_orders']
-                                    st.rerun()
+                            sub_col1_der, sub_col2_der, sub_col3_der = st.columns([1, 1, 1])
+                            with sub_col2_der:
+                                if st.button("▶️", key=f"move_forward_{row['ID']}_2"):
+                                    if f.move_order_forward(row['ID'], 'costurera'):
+                                        st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                        if 'df_display_orders' in st.session_state:
+                                            del st.session_state['df_display_orders']
+                                        st.rerun()
 
             # Contenedor 3: Local para entregar
             with col3:
                 st.markdown("### Local para entregar")
                 st.info(f"Pedidos: {len(local_para_entregar)}")
-
+                opciones_pagado = ["No Pagado", "Efectivo", "Tarjeta", "Bizum"]
                 # Mostrar tarjetas de los pedidos
                 for index, row in local_para_entregar.iterrows():
                     with st.expander(f"{row['Cliente']} | {row['Articulo']}"):
                         st.write(f"**Fecha de Entrega:** {row['Entrega_Cliente'].strftime('%d/%m/%Y') if pd.notna(row['Entrega_Cliente']) else 'No asignada'}")
-                        st.write(f"**Cliente:** {row['Cliente']}")
                         st.write(f"**Descripción:** {row['Descripcion']}")
-                        st.write(row['Pagado'])
 
-                        colizq3, colder3 = st.columns(2)
-                        with colizq3:
+                        with st.form(key=f"form_pagado_{row['ID']}"):
 
-                            if st.button("◀️", key=f"move_backward_{row['ID']}_3"):
-                                if f.move_order_backward(row['ID'], 'local_para_entregar'):
-                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
-                                    if 'df_display_orders' in st.session_state:
-                                        del st.session_state['df_display_orders']
-                                    st.rerun()
 
-                        with colder3:
-                            if st.button("▶️", key=f"move_forward_{row['ID']}_3"):
-                                if f.move_order_forward(row['ID'], 'local_para_entregar'):
-                                    st.cache_data.clear() # Limpiar el caché para refrescar la tabla
-                                    if 'df_display_orders' in st.session_state:
-                                        del st.session_state['df_display_orders']
-                                    st.rerun()
+                            pago_seleccionado = st.radio(
+                                        label="Selecciona una forma de pago:",
+                                        options = opciones_pagado, # Opción vacía por defecto
+                                        index=opciones_pagado.index(row['Pagado']) if row['Pagado'] in opciones_pagado else 0,
+                                        key=f"radio_pagado_{row['ID']}",
+                                        horizontal=True
+                            )
+
+                            st.write("")
+                            colizq3, colmed3, colder3 = st.columns([1, 1, 1])
+                            with colizq3:
+                                    if st.form_submit_button("◀️"):
+                                        if f.move_order_backward(row['ID'], 'local_para_entregar'):
+                                            st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                            if 'df_display_orders' in st.session_state:
+                                                del st.session_state['df_display_orders']
+                                            st.rerun()
+
+                            with colder3:
+                                sub_col31_der, sub_col32_der, sub_col33_der = st.columns([1, 1, 1])
+                                with sub_col32_der:
+                                    if st.form_submit_button("▶️"):
+                                        if f.move_order_forward(row['ID'], 'local_para_entregar',pago = pago_seleccionado):
+                                            st.cache_data.clear() # Limpiar el caché para refrescar la tabla
+                                            if 'df_display_orders' in st.session_state:
+                                                del st.session_state['df_display_orders']
+                                            st.rerun()
 
 
     else:

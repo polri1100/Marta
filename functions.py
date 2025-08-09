@@ -153,7 +153,7 @@ def insert_record(tableName, data):
             st.error(f"Error al insertar registro en {tableName}: {response.json()}")
             return None
     except Exception as e:
-        st.error(f"Error al insertar registro en {tableName}: {e}")
+        st.error(f"Error al insertar registro en {tableName}: El Cliente o Teléfono ya existen")
         return None
 
 def update_record(tableName, record_id, data):
@@ -172,7 +172,7 @@ def update_record(tableName, record_id, data):
         st.error(f"Error al actualizar registro ID {record_id} en {tableName}: {e}")
         return False
 
-def move_order_forward(order_id, current_stage):
+def move_order_forward(order_id, current_stage, costurera = None, pago = "No Pagado"):
 
     today = datetime.date.today().isoformat()
     update_payload = {}
@@ -180,6 +180,7 @@ def move_order_forward(order_id, current_stage):
     if current_stage == 'local_para_costurera':
         # Mover a "En la costurera": Actualizar 'Entrega_Proveedor'
         update_payload = {'Entrega_Proveedor': today}
+        update_payload['Proveedor'] = costurera
 
     elif current_stage == 'costurera':
         # Mover a "Local para entregar": Actualizar 'Recogida_Proveedor'
@@ -187,6 +188,7 @@ def move_order_forward(order_id, current_stage):
     elif current_stage == 'local_para_entregar':
         # Mover a "Entregado": Actualizar 'Recogida_Cliente'
         update_payload = {'Recogida_Cliente': today}
+        update_payload['Pagado'] = pago
     
     if update_payload:
         return update_record('Pedidos', order_id, update_payload)

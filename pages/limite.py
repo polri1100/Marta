@@ -15,7 +15,7 @@ articulos = f.get_articles_data()
 if not pedidos.empty:
         # Filtramos solo los pedidos que tienen una fecha límite
         pedidos_join = f.ordersJoin(pedidos, clientes, articulos)
-        pedidos_con_limite = pedidos_join[pd.notna(pedidos_join['Limite'])].copy()
+        pedidos_con_limite = pedidos_join[(pedidos_join['Limite'].notna()) & (pedidos_join['Recogida_Cliente'].isna())].copy()
 
         if not pedidos_con_limite.empty:
             # Convertir la columna 'Limite' a formato de fecha y hora ISO 8601
