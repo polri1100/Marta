@@ -57,22 +57,22 @@ cantidad (que se multiplique)
 fecha pago proveedor 
 
 -Seguimiento de pedidos
-intentar modificar pagado en "local para entregar"
+intentar modificar pagado en "local para entregar" hecha
 
 -Contabilidad
-Cambiar nombre
-Poner logo
-añadir count de pedidos
-calcular coste total: coste proveedor + coste material
-añadir margen: (importe - coste)/importe
-cambiar grafico por dos columnas
-cambiar fecha por fecha recogida
+Cambiar nombre hecha
+Poner logo hecha
+añadir count de pedidos hecha
+calcular coste total: coste proveedor + coste material hecha
+añadir margen: (importe - coste)/importe hecha
+cambiar grafico por dos columnas hecha
+cambiar fecha por fecha recogida hecha
 añadir filtros: articulo, cliente, proveedor
 
 -Informe
-Morosos: debe dinero (producto entregado no pagado)
-Pedido abandonado: dos meseses en local para entregar + comentario para recordar a marta que modifique la descripcion del pedido
-fecha Limite, calendario si se puede. Sino como seguimiento de pedidos (hoy, mañana, pasado mañana)
+Morosos: debe dinero (producto entregado no pagado) hecha
+Pedido abandonado: dos meseses en local para entregar + comentario para recordar a marta que modifique la descripcion del pedido hecha
+fecha Limite, calendario si se puede. Sino como seguimiento de pedidos (hoy, mañana, pasado mañana) hecha
 pago proveedor (mostrar fecha pago proveedor). que se actualice el campo fecha pago proveedor cuando le de al tick
 
 --------------------------------------------------------------

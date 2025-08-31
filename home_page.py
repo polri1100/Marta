@@ -4,7 +4,7 @@ import pandas as pd
 
 def home_content():
     st.markdown("# EL TALLER DE MARTA 👚")
-    st.write(f"¡Bienvenida, {st.user.name} a la aplicación de gestión de tu negocio!")
+    #st.write(f"¡Bienvenida, {st.user.name} a la aplicación de gestión de tu negocio!")
 
     st.markdown("---") 
     st.markdown("# Seguimiento de Pedidos 🗓️")
@@ -49,6 +49,13 @@ def home_content():
                 st.info(f"Pedidos: {len(local_para_costurera)}")
                 opciones_costureras = ["Alicia", "Dani", "Manuela", "Mari", "Marlen", "M.Antonia", "Marta"]
                 
+                search_query_1 = st.text_input("Buscar por cliente o artículo", key = "search_1")
+                if search_query_1:
+                    local_para_costurera = local_para_costurera[
+                        local_para_costurera["Cliente"].str.contains(search_query_1, case= False, na = False) |
+                        local_para_costurera["Articulo"].str.contains(search_query_1, case = False, na = False)
+                    ]
+                
                 # Mostrar tarjetas de los pedidos
                 for index, row in local_para_costurera.iterrows():
                     with st.expander(f"{row['Cliente']} | {row['Articulo']}"):
@@ -82,6 +89,14 @@ def home_content():
                 st.markdown("### En la costurera")
                 st.info(f"Pedidos: {len(costurera)}")
                 
+                search_query_2 = st.text_input("Buscar por cliente o artíuclo", key = "search_2")
+                if search_query_2:
+                    costurera = costurera[
+                        costurera["Cliente"].str.contains(search_query_2, case = False, na = False) |
+                        costurera["Articulo"].str.contains(search_query_2, case = False, na = False)
+                    ]
+                
+
                 # Mostrar tarjetas de los pedidos
                 for index, row in costurera.iterrows():
                     with st.expander(f"{row['Cliente']} | {row['Articulo']}"):
@@ -115,6 +130,14 @@ def home_content():
                 st.markdown("### Local para entregar")
                 st.info(f"Pedidos: {len(local_para_entregar)}")
                 opciones_pagado = ["No Pagado", "Efectivo", "Tarjeta", "Bizum"]
+
+                search_query_3 = st.text_input("Buscar por cliente o artículo", key = "search_3")
+                if search_query_3:
+                    local_para_entregar = local_para_entregar[
+                        local_para_entregar["Cliente"].str.contains(search_query_3, case = False, na = False) |
+                        local_para_entregar["Articulo"].str.contains(search_query_3, case = False, na = False)
+                    ]
+
                 # Mostrar tarjetas de los pedidos
                 for index, row in local_para_entregar.iterrows():
                     with st.expander(f"{row['Cliente']} | {row['Articulo']}"):
