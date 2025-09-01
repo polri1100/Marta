@@ -35,7 +35,7 @@ def obtainTable(tableName):
             # Convert date columns to datetime.date objects
             date_columns = {
                 'Entrega_Cliente', 'Limite', 'Entrega_Proveedor',
-                'Recogida_Proveedor', 'Recogida_Cliente'
+                'Recogida_Proveedor', 'Recogida_Cliente', 'Pago_Proveedor'
             }
             for col in date_columns:
                 if col in df.columns:
@@ -253,7 +253,7 @@ def ordersJoin(df_pedidos, df_clientes, df_articulos):
     # Ensure all expected columns are present before reordering
     desired_order = ['ID', 'Cliente', 'Articulo', 'Entrega_Cliente', 'Descripcion', 'Cantidad', 
                      'Proveedor', 'Pagado', 'Limite', 'Coste_Material', 'Coste_Proveedor', 'Importe',
-                     'Entrega_Proveedor', 'Recogida_Proveedor', 'Recogida_Cliente']
+                     'Entrega_Proveedor', 'Recogida_Proveedor', 'Recogida_Cliente', 'Pago_Proveedor']
     
     # Filter desired_order to only include columns actually present in df_joined
     final_columns = [col for col in desired_order if col in df_joined.columns]

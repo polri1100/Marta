@@ -195,6 +195,8 @@ class OrderForm():
                 st.session_state.search_recogida_proveedor_value = None
             if f'search_recogida_cliente_value' not in st.session_state: 
                 st.session_state.search_recogida_cliente_value = None
+            if f'search_pago_proveedor_value' not in st.session_state:
+                st.session_state.search_pago_proveedor_value = None
             
 
 
@@ -370,6 +372,12 @@ class OrderForm():
                         format="DD/MM/YYYY", 
                         key='search_recogida_cliente_key'
                     )
+                    self.pago_proveedor = st.date_input(
+                        'Pago Proveedor',
+                        value=st.session_state.search_pago_proveedor_value,
+                        format="DD/MM/YYYY",
+                        key='search_pago_proveedor_key'
+                    )
 
                 # Buttons for search form
                 searchbuttons = st.columns(2)
@@ -394,4 +402,5 @@ class OrderForm():
                         st.session_state.search_entrega_proveedor_value = self.entrega_proveedor
                         st.session_state.search_recogida_proveedor_value = self.recogida_proveedor
                         st.session_state.search_recogida_cliente_value = self.recogida_cliente
+                        st.session_state.search_pago_proveedor_value = self.pago_proveedor
 

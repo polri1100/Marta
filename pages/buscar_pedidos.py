@@ -55,6 +55,7 @@ if formSearch.Button:
         'Entrega_Proveedor': st.session_state.search_entrega_proveedor_value,
         'Recogida_Proveedor': st.session_state.search_recogida_proveedor_value,
         'Recogida_Cliente': st.session_state.search_recogida_cliente_value,
+        'Pago_Proveedor' : st.session_state.search_pago_proveedor_value
     }
     if search_params['Cliente'] == '-Selecciona Un Cliente-':
         del search_params["Cliente"]
@@ -67,7 +68,7 @@ if formSearch.Button:
         filtered_df = f.searchFunction(db_joined.copy(), clean_search_params)
         st.session_state.df_display_orders = filtered_df
 
-        for k in ['search_entrega_cliente_value', 'search_proveedor_value','search_pagado_value','search_limite_value','search_entrega_proveedor_value','search_recogida_proveedor_value','search_recogida_cliente_value']:
+        for k in ['search_entrega_cliente_value', 'search_proveedor_value','search_pagado_value','search_limite_value','search_entrega_proveedor_value','search_recogida_proveedor_value','search_recogida_cliente_value','search_pago_proveedor']:
             if k in st.session_state:
                 del st.session_state[k]
 
@@ -105,6 +106,7 @@ if not st.session_state.df_display_orders.empty:
         "Entrega_Proveedor": st.column_config.DateColumn("Entrega Proveedor", format="DD/MM/YYYY"),
         "Recogida_Proveedor": st.column_config.DateColumn("Recogida Proveedor", format="DD/MM/YYYY"),
         "Recogida_Cliente": st.column_config.DateColumn("Recogida Cliente", format="DD/MM/YYYY"),
+        "Pago_Proveedor" : st.column_config.DateColumn("Pago Proveedor", format="DD/MM/YYYY"),
         "Pagado": st.column_config.SelectboxColumn(
             "Pagado",
             options=["No Pagado", "Efectivo", "Tarjeta", "Bizum"],
@@ -146,7 +148,7 @@ if not st.session_state.df_display_orders.empty:
                     update_payload = {}
                     for col, val in edited_data.items():
                         if col not in ['Cliente', 'Articulo']:
-                            if col in ["Entrega_Cliente", "Limite", "Entrega_Proveedor", "Recogida_Proveedor", "Recogida_Cliente"]:
+                            if col in ["Entrega_Cliente", "Limite", "Entrega_Proveedor", "Recogida_Proveedor", "Recogida_Cliente", "Pago_Proveedor"]:
                                 if isinstance(val, datetime.date):
                                     update_payload[col] = val.isoformat()
                                 elif pd.isna(val) or val == "":

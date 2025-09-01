@@ -71,8 +71,8 @@ insertar_pedidos_page = st.Page("pages/insertar_pedidos.py",title="Insertar Pedi
 contabilidad_page = st.Page("pages/contabilidad.py",title="Contabilidad", icon=":material/monitoring:")
 limite_page = st.Page("pages/limite.py", title="Límite", icon=":material/calendar_month:")
 morosos_page = st.Page("pages/morosos.py", title="Morosos", icon=":material/sentiment_extremely_dissatisfied:")
-abandonos_page = st.Page("pages/abandonos.py", title="Pedidos Abandonados")
-proveedores_page = st.Page("pages/proveedores.py", title="Proveedores")
+abandonos_page = st.Page("pages/abandonos.py", title="Pedidos Abandonados", icon=":material/heart_broken:")
+proveedores_page = st.Page("pages/proveedores.py", title="Proveedores", icon=":material/groups:")
 
 
 

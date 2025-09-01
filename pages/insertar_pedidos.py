@@ -120,6 +120,7 @@ if formSubmit.Button:
                 'Entrega_Proveedor': None, # Ensure these are explicitly None if not set
                 'Recogida_Proveedor': None,
                 'Recogida_Cliente': None,
+                'Pago_Proveedor' : None,
             }
             
             # Convert date objects to ISO format strings for database insertion
@@ -174,6 +175,7 @@ if not today_orders.empty:
         "Entrega_Proveedor": st.column_config.DateColumn("Entrega Proveedor", format="DD/MM/YYYY"),
         "Recogida_Proveedor": st.column_config.DateColumn("Recogida Proveedor", format="DD/MM/YYYY"),
         "Recogida_Cliente": st.column_config.DateColumn("Recogida Cliente", format="DD/MM/YYYY"),
+        "Pago_Proveedor" : st.column_config.DateColumn("Pago Proveedor", format="DD/MM/YYYY"),
         "Pagado": st.column_config.SelectboxColumn(
             "Pagado",
             options=["No Pagado", "Efectivo", "Tarjeta", "Bizum"],

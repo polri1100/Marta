@@ -54,7 +54,7 @@ cantidad (que se multiplique)
 -----------------------------------------------------------
 
 -añadir campos
-fecha pago proveedor 
+fecha pago proveedor hecha
 
 -Seguimiento de pedidos
 intentar modificar pagado en "local para entregar" hecha
@@ -73,7 +73,7 @@ añadir filtros: articulo, cliente, proveedor
 Morosos: debe dinero (producto entregado no pagado) hecha
 Pedido abandonado: dos meseses en local para entregar + comentario para recordar a marta que modifique la descripcion del pedido hecha
 fecha Limite, calendario si se puede. Sino como seguimiento de pedidos (hoy, mañana, pasado mañana) hecha
-pago proveedor (mostrar fecha pago proveedor). que se actualice el campo fecha pago proveedor cuando le de al tick
+pago proveedor (mostrar fecha pago proveedor). que se actualice el campo fecha pago proveedor cuando le de al tick hecha
 
 --------------------------------------------------------------
 
