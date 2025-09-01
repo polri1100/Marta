@@ -90,14 +90,7 @@ if st.user.is_logged_in:
     )
 else:
     # Si NO está logueado, solo muestra la página de login
-    #pg = st.navigation([login_page])
-    pg = st.navigation(
-        {
-            "Principal": [home_page], # Puedes agrupar la Portada en una sección
-            "Gestión": [articulos_page,clientes_page,buscar_pedidos_page,insertar_pedidos_page], # Aquí irían tus otras páginas protegidas
-            "Informe":[contabilidad_page, limite_page, morosos_page, abandonos_page, proveedores_page],
-            "Cuenta": [logout_page], # La opción de cerrar sesión
-        }
-    )
+    pg = st.navigation([login_page])
+
 # Ejecuta la navegación
 pg.run()
