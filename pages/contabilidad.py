@@ -8,6 +8,8 @@ st.markdown("---")
 
 pedidos_df = f.obtainTable("Pedidos")
 
+costureras = ["Alicia", "Dani", "Manuela", "Mari", "Marlen", "M.Antonia", "Marta"]
+
 if not pedidos_df.empty:
         # Hacemos una copia del DataFrame para trabajar con ella
         analisis_df = pedidos_df.copy()
@@ -68,6 +70,40 @@ if not pedidos_df.empty:
             # Mostramos la tabla de datos del análisis
             st.markdown("### Tabla de datos del análisis")
             st.dataframe(analisis_df_grouped)
+
+            st.markdown("### Pago Mensual a Proveedores")
+            costurera_seleccionada = st.selectbox(
+            "Filtrar por Costurera:",
+            options = ["Mostrar Todos"] + costureras
+            )
+
+            df_pagos = pedidos_df.copy()
+
+            df_pagos["Pago_Proveedor"] = pd.to_datetime(df_pagos["Pago_Proveedor"], errors="coerce")
+            df_pagos = df_pagos.dropna(subset=["Pago_Proveedor"])
+
+            df_pagos["Coste_Proveedor"] = pd.to_numeric(df_pagos["Coste_Proveedor"], errors="coerce").fillna(0)
+            if costurera_seleccionada != "Mostrar Todos":
+                df_filtrado = df_pagos[df_pagos['Proveedor'] == costurera_seleccionada].copy()
+            else:
+                df_filtrado = df_pagos.copy()
+            
+            df_filtrado["Mes_Pago"] = df_filtrado["Pago_Proveedor"].dt.to_period("M")
+            df_filtrado["Mes_Str"] = df_filtrado["Pago_Proveedor"].dt.strftime("%Y-%m")
+
+            pagos_mensuales = df_filtrado.groupby("Mes_Str").agg(
+                Total_Pagado = ("Coste_Proveedor","sum")
+            ).reset_index()
+
+            pagos_mensuales = pagos_mensuales.rename(columns={"Mes_Str":"Mes de Pago"})
+
+            st.bar_chart(
+                pagos_mensuales,
+                x = "Mes de Pago",
+                y = "Total_Pagado",
+                use_container_width = True
+            )
+
         else:
             st.warning("La tabla de pedidos no contiene fechas válidas.")
 else:
