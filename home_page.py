@@ -4,7 +4,7 @@ import pandas as pd
 
 def home_content():
     st.markdown("# EL TALLER DE MARTA 👚")
-    st.write(f"¡Bienvenida, {st.user.name} a la aplicación de gestión de tu negocio!")
+    #st.write(f"¡Bienvenida, {st.user.name} a la aplicación de gestión de tu negocio!")
 
     st.markdown("---") 
     st.markdown("# Seguimiento de Pedidos 🗓️")
